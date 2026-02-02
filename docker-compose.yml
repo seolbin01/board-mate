@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: boardmate-db
+    environment:
+      POSTGRES_DB: boardmate
+      POSTGRES_USER: boardmate
+      POSTGRES_PASSWORD: boardmate
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: boardmate-redis
+    ports:
+      - "6300:6379"
+
+volumes:
+  postgres-data:
