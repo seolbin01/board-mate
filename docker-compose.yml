@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: boardmate
       POSTGRES_PASSWORD: boardmate
     ports:
-      - "5432:5432"
+      - "5400:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
 
