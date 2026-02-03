@@ -27,6 +27,7 @@ spring:
   sql:
     init:
       mode: always
+      schema-locations: classpath:schema.sql
 
 jwt:
   secret: boardmate-secret-key-for-jwt-token-must-be-at-least-256-bits-long
