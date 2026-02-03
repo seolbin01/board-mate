@@ -1,18 +1,19 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/boardmate
+    url: jdbc:postgresql://localhost:5400/boardmate
     username: boardmate
     password: boardmate
     driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: true
+    defer-datasource-initialization: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 100
 
   data:
     redis:
@@ -22,3 +23,17 @@ spring:
   threads:
     virtual:
       enabled: true
+
+  sql:
+    init:
+      mode: always
+
+jwt:
+  secret: boardmate-secret-key-for-jwt-token-must-be-at-least-256-bits-long
+  access-token-expiry: 3600000
+  refresh-token-expiry: 604800000
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+    org.hibernate.orm.jdbc.bind: trace
