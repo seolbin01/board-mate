@@ -2,6 +2,22 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import {
+  MapPin,
+  Building2,
+  Calendar,
+  Users,
+  User,
+  Clock,
+  FileText,
+  LogIn,
+  LogOut,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  Gamepad2,
+  Crown
+} from 'lucide-react';
 import client from '../api/client';
 import { useAuthStore } from '../stores/authStore';
 import type { Room, ApiResponse } from '../types';
@@ -161,76 +177,121 @@ export default function RoomDetailPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* 헤더 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-4">
-        <div className="flex justify-between items-start mb-4">
-          <span className="px-3 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm">
+      <div className="bg-white rounded-xl shadow-md border border-stone-200 p-6 mb-4">
+        <div className="flex justify-between items-start mb-6">
+          <div className="flex items-center gap-2 px-4 py-2 bg-orange-100 text-orange-700 rounded-xl text-sm font-medium">
+            <Gamepad2 size={16} />
             {room.gameTitle}
-          </span>
-          <span className={`px-3 py-1 rounded-full text-sm ${
-            room.roomStatus === 'WAITING' ? 'bg-green-100 text-green-700' :
-            room.roomStatus === 'FULL' ? 'bg-red-100 text-red-700' :
-            'bg-gray-100 text-gray-700'
+          </div>
+          <span className={`px-4 py-2 rounded-xl text-sm font-medium ${
+            room.roomStatus === 'WAITING' ? 'bg-emerald-100 text-emerald-700' :
+            room.roomStatus === 'FULL' ? 'bg-rose-100 text-rose-700' :
+            'bg-stone-100 text-stone-700'
           }`}>
-            {room.roomStatus === 'WAITING' ? '모집중' : 
+            {room.roomStatus === 'WAITING' ? '모집중' :
              room.roomStatus === 'FULL' ? '마감' : '종료'}
           </span>
         </div>
 
-        <h1 className="text-xl font-bold mb-2">{room.region}</h1>
-        {room.cafeName && <p className="text-gray-600 mb-2">{room.cafeName}</p>}
-        
-        <div className="text-gray-600 mb-4">
-          📅 {new Date(room.gameDate).toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-          })}
-        </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 text-stone-700">
+            <MapPin size={20} className="text-orange-600" />
+            <h1 className="text-2xl font-bold">{room.region}</h1>
+          </div>
 
-        {room.description && (
-          <p className="text-gray-700 mb-4">{room.description}</p>
-        )}
+          {room.cafeName && (
+            <div className="flex items-center gap-3 text-stone-600">
+              <Building2 size={18} className="text-orange-500" />
+              <p className="text-base">{room.cafeName}</p>
+            </div>
+          )}
 
-        <div className="text-sm text-gray-500">
-          방장: {room.hostNickname}
+          <div className="flex items-center gap-3 text-stone-600">
+            <Calendar size={18} className="text-orange-500" />
+            <span>{new Date(room.gameDate).toLocaleDateString('ko-KR', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}</span>
+          </div>
+
+          <div className="flex items-center gap-3 text-stone-600">
+            <Clock size={18} className="text-orange-500" />
+            <span>{new Date(room.gameDate).toLocaleTimeString('ko-KR', {
+              hour: '2-digit',
+              minute: '2-digit',
+            })}</span>
+          </div>
+
+          <div className="flex items-center gap-3 text-stone-600">
+            <Users size={18} className="text-orange-500" />
+            <span>{room.currentParticipants} / {room.maxParticipants}명</span>
+          </div>
+
+          {room.description && (
+            <div className="pt-4 border-t border-stone-200">
+              <div className="flex items-start gap-3 text-stone-700">
+                <FileText size={18} className="text-orange-500 mt-1" />
+                <p className="text-base leading-relaxed">{room.description}</p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex items-center gap-3 text-sm text-stone-500 pt-2">
+            <Crown size={16} className="text-amber-500" />
+            <span>방장: {room.hostNickname}</span>
+          </div>
         </div>
       </div>
 
       {/* 참가자 목록 */}
-      <div className="bg-white rounded-lg shadow p-6 mb-4">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="font-bold">
+      <div className="bg-white rounded-xl shadow-md border border-stone-200 p-6 mb-4">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="font-bold text-lg flex items-center gap-2 text-stone-800">
+            <Users size={20} className="text-orange-600" />
             참가자 ({room.currentParticipants}/{room.maxParticipants})
           </h2>
           {isHost && room.roomStatus !== 'CLOSED' && (
             <button
               onClick={() => setAttendanceMode(!attendanceMode)}
-              className="text-sm px-3 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+              className="text-sm px-4 py-2 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-medium transition-colors"
             >
               {attendanceMode ? '취소' : '출석 체크'}
             </button>
           )}
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {participants.map((p) => (
-            <div key={p.id} className="flex justify-between items-center py-2 border-b">
-              <div className="flex items-center gap-2">
-                <span>{p.nickname}</span>
+            <div key={p.id} className="flex justify-between items-center py-3 px-4 bg-stone-50 rounded-xl border border-stone-200 hover:border-orange-300 transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-orange-200 rounded-full flex items-center justify-center">
+                  <User size={16} className="text-orange-700" />
+                </div>
+                <span className="font-medium text-stone-800">{p.nickname}</span>
                 {p.userId === participants[0]?.userId && (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+                  <span className="flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-3 py-1 rounded-xl font-medium">
+                    <Crown size={12} />
                     방장
                   </span>
                 )}
                 {p.attendanceStatus !== 'PENDING' && (
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    p.attendanceStatus === 'ATTENDED' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
+                  <span className={`flex items-center gap-1 text-xs px-3 py-1 rounded-xl font-medium ${
+                    p.attendanceStatus === 'ATTENDED'
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-rose-100 text-rose-700'
                   }`}>
-                    {p.attendanceStatus === 'ATTENDED' ? '출석' : '노쇼'}
+                    {p.attendanceStatus === 'ATTENDED' ? (
+                      <>
+                        <CheckCircle size={12} />
+                        출석
+                      </>
+                    ) : (
+                      <>
+                        <XCircle size={12} />
+                        노쇼
+                      </>
+                    )}
                   </span>
                 )}
               </div>
@@ -239,22 +300,24 @@ export default function RoomDetailPage() {
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleAttendanceChange(p.userId, 'ATTENDED')}
-                    className={`text-xs px-3 py-1 rounded ${
+                    className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
                       attendances[p.userId] === 'ATTENDED'
-                        ? 'bg-green-500 text-white'
-                        : 'bg-gray-100 hover:bg-green-100'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-stone-100 hover:bg-emerald-100 text-stone-700'
                     }`}
                   >
+                    <CheckCircle size={14} />
                     출석
                   </button>
                   <button
                     onClick={() => handleAttendanceChange(p.userId, 'NO_SHOW')}
-                    className={`text-xs px-3 py-1 rounded ${
+                    className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
                       attendances[p.userId] === 'NO_SHOW'
-                        ? 'bg-red-500 text-white'
-                        : 'bg-gray-100 hover:bg-red-100'
+                        ? 'bg-rose-500 text-white'
+                        : 'bg-stone-100 hover:bg-rose-100 text-stone-700'
                     }`}
                   >
+                    <XCircle size={14} />
                     노쇼
                   </button>
                 </div>
@@ -266,8 +329,9 @@ export default function RoomDetailPage() {
         {attendanceMode && (
           <button
             onClick={handleAttendanceSubmit}
-            className="w-full mt-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+            className="w-full mt-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-medium transition-colors flex items-center justify-center gap-2"
           >
+            <CheckCircle size={18} />
             출석 체크 완료
           </button>
         )}
@@ -275,22 +339,28 @@ export default function RoomDetailPage() {
 
       {/* 실시간 알림 */}
       {notifications.length > 0 && (
-        <div className="bg-blue-50 rounded-lg p-4 mb-4">
-          <h3 className="font-bold text-blue-700 mb-2">실시간 알림</h3>
-          {notifications.slice(-5).map((msg, i) => (
-            <p key={i} className="text-sm text-blue-600">{msg}</p>
-          ))}
+        <div className="bg-orange-50 rounded-xl shadow-md border border-orange-200 p-5 mb-4">
+          <h3 className="font-bold text-orange-800 mb-3 flex items-center gap-2">
+            <div className="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+            실시간 알림
+          </h3>
+          <div className="space-y-2">
+            {notifications.slice(-5).map((msg, i) => (
+              <p key={i} className="text-sm text-orange-700 pl-4 border-l-2 border-orange-300">{msg}</p>
+            ))}
+          </div>
         </div>
       )}
 
       {/* 액션 버튼 */}
-      <div className="flex gap-2">
+      <div className="flex gap-3">
         {!isParticipant && room.roomStatus === 'WAITING' && (
           <button
             onClick={handleJoin}
             disabled={joining}
-            className="flex-1 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+            className="flex-1 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2 shadow-md"
           >
+            <LogIn size={18} />
             {joining ? '참가 중...' : '참가하기'}
           </button>
         )}
@@ -298,8 +368,9 @@ export default function RoomDetailPage() {
         {isParticipant && !isHost && (
           <button
             onClick={handleLeave}
-            className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            className="flex-1 py-3 bg-stone-200 text-stone-700 rounded-xl hover:bg-stone-300 font-medium transition-colors flex items-center justify-center gap-2 shadow-md"
           >
+            <LogOut size={18} />
             나가기
           </button>
         )}
@@ -307,8 +378,9 @@ export default function RoomDetailPage() {
         {isHost && (
           <button
             onClick={handleDelete}
-            className="flex-1 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600"
+            className="flex-1 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 font-medium transition-colors flex items-center justify-center gap-2 shadow-md"
           >
+            <Trash2 size={18} />
             방 삭제
           </button>
         )}

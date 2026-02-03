@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Plus, MapPin, Calendar, User, Users, Loader2 } from 'lucide-react';
 import client from '../api/client';
 import RoomSearchFilter from '../components/RoomSearchFilter';
 import type { Room, ApiResponse, RoomSearchParams, PageResponse } from '../types';
@@ -90,70 +91,83 @@ export default function RoomListPage() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">모임 찾기</h1>
+        <h1 className="text-2xl font-bold text-stone-800">모임 찾기</h1>
         <Link
           to="/rooms/new"
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+          className="flex items-center gap-2 px-4 py-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-colors shadow-md hover:shadow-lg"
         >
-          + 방 만들기
+          <Plus size={20} />
+          방 만들기
         </Link>
       </div>
 
       <RoomSearchFilter onSearch={handleSearch} />
 
       {loading ? (
-        <div className="text-center py-10">로딩 중...</div>
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="animate-spin text-orange-500" size={40} />
+        </div>
       ) : rooms.length === 0 ? (
-        <div className="text-center py-10 text-gray-500">
+        <div className="text-center py-10 text-stone-500">
           검색 결과가 없습니다
         </div>
       ) : (
         <>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {rooms.map((room) => (
               <Link
                 key={room.id}
                 to={`/rooms/${room.id}`}
-                className="block p-4 bg-white rounded-lg shadow hover:shadow-md transition"
+                className="group block p-5 bg-white rounded-xl border border-stone-200 shadow-md hover:shadow-lg hover:border-orange-300 transition-all duration-300 hover:-translate-y-0.5"
               >
-                <div className="flex justify-between items-start mb-2">
-                  <span className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded">
+                <div className="flex justify-between items-start mb-3">
+                  <span className="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-700 rounded-lg">
                     {room.gameTitle}
                   </span>
-                  <span className={`text-sm ${
-                    room.roomStatus === 'FULL' ? 'text-red-500' : 'text-green-500'
+                  <span className={`flex items-center gap-1 text-sm font-medium ${
+                    room.roomStatus === 'FULL' ? 'text-red-600' : 'text-emerald-600'
                   }`}>
-                    {room.currentParticipants}/{room.maxParticipants}명
+                    <Users size={16} />
+                    {room.currentParticipants}/{room.maxParticipants}
                   </span>
                 </div>
 
-                <h3 className="font-medium mb-1">{room.region}</h3>
-                <p className="text-sm text-gray-500 mb-2">{room.cafeName}</p>
-
-                <div className="text-sm text-gray-600">
-                  {new Date(room.gameDate).toLocaleDateString('ko-KR', {
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                <div className="flex items-start gap-2 mb-2">
+                  <MapPin size={18} className="text-orange-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h3 className="font-semibold text-stone-800 group-hover:text-orange-600 transition-colors">{room.region}</h3>
+                    <p className="text-sm text-stone-500">{room.cafeName}</p>
+                  </div>
                 </div>
 
-                <div className="text-sm text-gray-500 mt-2">
-                  방장: {room.hostNickname}
+                <div className="flex items-center gap-2 text-sm text-stone-600 mb-2">
+                  <Calendar size={16} className="text-orange-500 flex-shrink-0" />
+                  <span>
+                    {new Date(room.gameDate).toLocaleDateString('ko-KR', {
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 text-sm text-stone-500 pt-2 border-t border-stone-100">
+                  <User size={16} className="text-orange-500 flex-shrink-0" />
+                  <span>{room.hostNickname}</span>
                 </div>
               </Link>
             ))}
           </div>
 
           {loadingMore && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <div className="flex justify-center py-8">
+              <Loader2 className="animate-spin text-orange-500" size={32} />
             </div>
           )}
 
           {!hasMore && rooms.length > 0 && (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-stone-500">
               모든 방을 불러왔습니다
             </div>
           )}
