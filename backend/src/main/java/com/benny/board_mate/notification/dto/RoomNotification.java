@@ -54,4 +54,13 @@ public class RoomNotification {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+
+    public static RoomNotification reminder(Long roomId, String region, String gameTitle, LocalDateTime gameDate) {
+        return RoomNotification.builder()
+                .type("REMINDER")
+                .roomId(roomId)
+                .message(String.format("⏰ 1시간 후 '%s'에서 '%s' 게임이 시작됩니다! 잊지 마세요!", region, gameTitle))
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

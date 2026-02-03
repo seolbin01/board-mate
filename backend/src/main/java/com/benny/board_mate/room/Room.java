@@ -53,6 +53,9 @@ public class Room extends BaseEntity {
     @Version
     private Long version;
 
+    @Column(nullable = false)
+    private boolean reminderSent = false;
+
     @Builder
     public Room(User host, BoardGame game, String region, String cafeName,
                 LocalDateTime gameDate, int maxParticipants, String description) {
@@ -101,5 +104,9 @@ public class Room extends BaseEntity {
             throw new IllegalStateException("이미 종료된 방입니다");
         }
         this.roomStatus = RoomStatus.CLOSED;
+    }
+
+    public void markReminderSent() {
+        this.reminderSent = true;
     }
 }
