@@ -2,6 +2,8 @@ package com.benny.board_mate.participant;
 
 import com.benny.board_mate.common.exception.BusinessException;
 import com.benny.board_mate.common.exception.ErrorCode;
+import com.benny.board_mate.notification.NotificationService;
+import com.benny.board_mate.notification.dto.RoomNotification;
 import com.benny.board_mate.participant.dto.ParticipantResponse;
 import com.benny.board_mate.room.Room;
 import com.benny.board_mate.room.RoomRepository;
@@ -21,30 +23,20 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final RoomRepository roomRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
-    /**
-     * 방 참가 - 비관적 락(PESSIMISTIC_WRITE)으로 동시성 제어
-     * 
-     * 왜 비관적 락인가?
-     * - 여러 유저가 동시에 마지막 1자리에 참가 신청할 때
-     * - SELECT FOR UPDATE로 해당 row를 잠가서 순차 처리
-     * - 정원 초과를 원천 차단
-     */
     @Transactional
     public ParticipantResponse joinRoom(Long userId, Long roomId) {
-        // SELECT ... FOR UPDATE (비관적 락)
         Room room = roomRepository.findByIdForUpdate(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
 
-        // 이미 참가했는지 확인
         if (participantRepository.existsByRoomAndUser(room, user)) {
             throw new BusinessException(ErrorCode.ROOM_ALREADY_JOINED);
         }
 
-        // 정원 확인 & 인원 추가 (Room 엔티티 비즈니스 로직)
         room.addParticipant();
 
         Participant participant = Participant.builder()
@@ -53,6 +45,23 @@ public class ParticipantService {
                 .build();
 
         participantRepository.save(participant);
+
+        // 실시간 알림 전송
+        notificationService.notifyRoom(roomId, RoomNotification.join(
+                roomId,
+                userId,
+                user.getNickname(),
+                room.getCurrentParticipants(),
+                room.getMaxParticipants()
+        ));
+
+        // 방이 가득 찼으면 추가 알림
+        if (room.isFull()) {
+            notificationService.notifyRoom(roomId, RoomNotification.roomFull(
+                    roomId,
+                    room.getMaxParticipants()
+            ));
+        }
 
         return ParticipantResponse.from(participant);
     }
@@ -74,6 +83,15 @@ public class ParticipantService {
 
         room.removeParticipant();
         participantRepository.delete(participant);
+
+        // 실시간 알림 전송
+        notificationService.notifyRoom(roomId, RoomNotification.leave(
+                roomId,
+                userId,
+                user.getNickname(),
+                room.getCurrentParticipants(),
+                room.getMaxParticipants()
+        ));
     }
 
     public List<ParticipantResponse> getParticipants(Long roomId) {

@@ -95,4 +95,8 @@ public class Room extends BaseEntity {
     public boolean isHost(User user) {
         return this.host.getId().equals(user.getId());
     }
+
+    public boolean isFull() {
+        return this.currentParticipants >= this.maxParticipants;
+    }
 }
