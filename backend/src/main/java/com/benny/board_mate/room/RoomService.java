@@ -8,6 +8,7 @@ import com.benny.board_mate.participant.Participant;
 import com.benny.board_mate.participant.ParticipantRepository;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
+import com.benny.board_mate.room.dto.RoomSearchRequest;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,6 +58,13 @@ public class RoomService {
 
     public List<RoomResponse> getWaitingRooms() {
         return roomRepository.findByRoomStatusOrderByCreatedAtDesc(RoomStatus.WAITING)
+                .stream()
+                .map(RoomResponse::from)
+                .toList();
+    }
+
+    public List<RoomResponse> searchRooms(RoomSearchRequest request) {
+        return roomRepository.findAll(RoomSpecification.searchRooms(request))
                 .stream()
                 .map(RoomResponse::from)
                 .toList();

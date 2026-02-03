@@ -1,29 +1,40 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import client from '../api/client';
-import type { Room, ApiResponse } from '../types';
+import RoomSearchFilter from '../components/RoomSearchFilter';
+import type { Room, ApiResponse, RoomSearchParams } from '../types';
 
 export default function RoomListPage() {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const response = await client.get<ApiResponse<Room[]>>('/rooms');
-        setRooms(response.data.data);
-      } catch (error) {
-        console.error('방 목록 조회 실패:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchRooms();
+  const fetchRooms = useCallback(async (params: RoomSearchParams = {}) => {
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      if (params.region) queryParams.append('region', params.region);
+      if (params.gameId) queryParams.append('gameId', String(params.gameId));
+      if (params.date) queryParams.append('date', params.date);
+
+      const queryString = queryParams.toString();
+      const url = queryString ? `/rooms?${queryString}` : '/rooms';
+
+      const response = await client.get<ApiResponse<Room[]>>(url);
+      setRooms(response.data.data);
+    } catch (error) {
+      console.error('방 목록 조회 실패:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  if (loading) {
-    return <div className="text-center py-10">로딩 중...</div>;
-  }
+  useEffect(() => {
+    fetchRooms();
+  }, [fetchRooms]);
+
+  const handleSearch = (params: RoomSearchParams) => {
+    fetchRooms(params);
+  };
 
   return (
     <div>
@@ -37,9 +48,13 @@ export default function RoomListPage() {
         </Link>
       </div>
 
-      {rooms.length === 0 ? (
+      <RoomSearchFilter onSearch={handleSearch} />
+
+      {loading ? (
+        <div className="text-center py-10">로딩 중...</div>
+      ) : rooms.length === 0 ? (
         <div className="text-center py-10 text-gray-500">
-          등록된 모임이 없습니다
+          검색 결과가 없습니다
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -59,19 +74,19 @@ export default function RoomListPage() {
                   {room.currentParticipants}/{room.maxParticipants}명
                 </span>
               </div>
-              
+
               <h3 className="font-medium mb-1">{room.region}</h3>
               <p className="text-sm text-gray-500 mb-2">{room.cafeName}</p>
-              
+
               <div className="text-sm text-gray-600">
-                📅 {new Date(room.gameDate).toLocaleDateString('ko-KR', {
+                {new Date(room.gameDate).toLocaleDateString('ko-KR', {
                   month: 'long',
                   day: 'numeric',
                   hour: '2-digit',
                   minute: '2-digit',
                 })}
               </div>
-              
+
               <div className="text-sm text-gray-500 mt-2">
                 방장: {room.hostNickname}
               </div>

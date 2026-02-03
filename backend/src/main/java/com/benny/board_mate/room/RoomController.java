@@ -3,6 +3,7 @@ package com.benny.board_mate.room;
 import com.benny.board_mate.common.response.ApiResponse;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
+import com.benny.board_mate.room.dto.RoomSearchRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -30,8 +31,9 @@ public class RoomController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RoomResponse>>> getWaitingRooms() {
-        return ResponseEntity.ok(ApiResponse.ok(roomService.getWaitingRooms()));
+    public ResponseEntity<ApiResponse<List<RoomResponse>>> getWaitingRooms(
+            @ModelAttribute RoomSearchRequest request) {
+        return ResponseEntity.ok(ApiResponse.ok(roomService.searchRooms(request)));
     }
 
     @GetMapping("/{roomId}")

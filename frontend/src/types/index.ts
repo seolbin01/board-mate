@@ -38,3 +38,16 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
+
+export interface Game {
+  id: number;
+  title: string;
+  minPlayers: number;
+  maxPlayers: number;
+}
+
+export interface RoomSearchParams {
+  region?: string;
+  gameId?: number;
+  date?: string;
+}
