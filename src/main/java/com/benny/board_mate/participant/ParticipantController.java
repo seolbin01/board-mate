@@ -1,0 +1,44 @@
+package com.benny.board_mate.participant;
+
+import com.benny.board_mate.common.response.ApiResponse;
+import com.benny.board_mate.participant.dto.ParticipantResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/rooms/{roomId}/participants")
+@RequiredArgsConstructor
+public class ParticipantController {
+
+    private final ParticipantService participantService;
+
+    @PostMapping
+    public ResponseEntity<ApiResponse<ParticipantResponse>> joinRoom(
+            Authentication authentication,
+            @PathVariable Long roomId) {
+        Long userId = (Long) authentication.getPrincipal();
+        ParticipantResponse response = participantService.joinRoom(userId, roomId);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.created(response));
+    }
+
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> leaveRoom(
+            Authentication authentication,
+            @PathVariable Long roomId) {
+        Long userId = (Long) authentication.getPrincipal();
+        participantService.leaveRoom(userId, roomId);
+        return ResponseEntity.ok(ApiResponse.ok());
+    }
+
+    @GetMapping
+    public ResponseEntity<ApiResponse<List<ParticipantResponse>>> getParticipants(
+            @PathVariable Long roomId) {
+        return ResponseEntity.ok(ApiResponse.ok(participantService.getParticipants(roomId)));
+    }
+}
