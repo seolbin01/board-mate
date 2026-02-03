@@ -14,4 +14,7 @@ public class RoomSearchRequest {
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate date;
+
+    private int page = 0;
+    private int size = 10;
 }

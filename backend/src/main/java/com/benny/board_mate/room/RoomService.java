@@ -13,6 +13,9 @@ import com.benny.board_mate.participant.Participant;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,11 +67,15 @@ public class RoomService {
                 .toList();
     }
 
-    public List<RoomResponse> searchRooms(RoomSearchRequest request) {
-        return roomRepository.findAll(RoomSpecification.searchRooms(request))
-                .stream()
-                .map(RoomResponse::from)
-                .toList();
+    public Page<RoomResponse> searchRooms(RoomSearchRequest request) {
+        PageRequest pageable = PageRequest.of(
+                request.getPage(),
+                request.getSize(),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+
+        return roomRepository.findAll(RoomSpecification.searchRooms(request), pageable)
+                .map(RoomResponse::from);
     }
 
     public RoomResponse getRoom(Long roomId) {

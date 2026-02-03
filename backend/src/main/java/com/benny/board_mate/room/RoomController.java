@@ -1,6 +1,7 @@
 package com.benny.board_mate.room;
 
 import com.benny.board_mate.common.response.ApiResponse;
+import com.benny.board_mate.common.response.PageResponse;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
 import com.benny.board_mate.room.dto.RoomSearchRequest;
@@ -31,9 +32,9 @@ public class RoomController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<RoomResponse>>> getWaitingRooms(
+    public ResponseEntity<ApiResponse<PageResponse<RoomResponse>>> getWaitingRooms(
             @ModelAttribute RoomSearchRequest request) {
-        return ResponseEntity.ok(ApiResponse.ok(roomService.searchRooms(request)));
+        return ResponseEntity.ok(ApiResponse.ok(PageResponse.from(roomService.searchRooms(request))));
     }
 
     @GetMapping("/my")

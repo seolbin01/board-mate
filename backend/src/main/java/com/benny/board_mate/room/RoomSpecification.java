@@ -41,9 +41,6 @@ public class RoomSpecification {
                 predicates.add(cb.lessThan(root.get("gameDate"), endOfDay));
             }
 
-            // 정렬: createdAt DESC
-            query.orderBy(cb.desc(root.get("createdAt")));
-
             return cb.and(predicates.toArray(new Predicate[0]));
         };
     }
