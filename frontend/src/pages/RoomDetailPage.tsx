@@ -419,6 +419,11 @@ export default function RoomDetailPage() {
                   <User size={16} className="text-orange-700" />
                 </div>
                 <span className="font-medium text-stone-800">{p.nickname}</span>
+                {p.userId === user?.id && (
+                  <span className="text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded-lg font-medium">
+                    나
+                  </span>
+                )}
                 {p.userId === participants[0]?.userId && (
                   <span className="flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-3 py-1 rounded-xl font-medium">
                     <Crown size={12} />

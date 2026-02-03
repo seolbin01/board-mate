@@ -28,10 +28,20 @@ Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들�
 - S~F 등급으로 사용자 신뢰도 표시
 - 건강한 커뮤니티 문화 조성
 
+### 💬 실시간 채팅
+- 방 내 참가자들과 실시간 채팅
+- WebSocket(STOMP) 기반 즉시 메시지 전송
+- 채팅 내역 저장 및 조회
+
+### ⭐ 리뷰 및 평점
+- 함께 플레이한 유저 평가
+- 별점(1~5) + 코멘트 작성
+- 유저별 평균 평점 및 리뷰 요약
+
 ### 🔔 실시간 알림
 - WebSocket 기반 실시간 알림
 - 참가자 입/퇴장 즉시 반영
-- 게임 종료 및 출석 체크 알림
+- 게임 시작 전 리마인더 알림
 
 ---
 
@@ -244,6 +254,8 @@ board-mate/
 │   │   ├── participant/    # 참가자/출석
 │   │   ├── game/           # 보드게임 카탈로그
 │   │   ├── trust/          # 신뢰도 시스템
+│   │   ├── chat/           # 실시간 채팅
+│   │   ├── review/         # 리뷰/평점 시스템
 │   │   ├── notification/   # WebSocket 알림
 │   │   └── common/         # 공통 (config, exception)
 │   ├── docker-compose.yml
@@ -284,6 +296,10 @@ http://localhost:8080/swagger-ui.html
 | GET | `/api/rooms/{id}` | 방 상세 |
 | POST | `/api/rooms/{id}/participants` | 참가 |
 | DELETE | `/api/rooms/{id}/participants` | 퇴장 |
+| GET | `/api/rooms/{id}/chats` | 채팅 내역 조회 |
+| POST | `/api/rooms/{id}/chats` | 메시지 전송 |
+| POST | `/api/reviews` | 리뷰 작성 |
+| GET | `/api/users/{id}/reviews` | 유저 리뷰 조회 |
 | GET | `/api/games` | 게임 목록 |
 | WS | `/ws` | WebSocket 연결 |
 
