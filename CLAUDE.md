@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**Always respond in Korean.**
+
 ## Project Overview
 
 Board-Mate is a full-stack web application for organizing board game meetups. Users can create/join gaming sessions at local cafes with real-time notifications and a trust score system for community credibility.

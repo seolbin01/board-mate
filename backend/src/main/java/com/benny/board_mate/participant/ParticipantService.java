@@ -137,6 +137,12 @@ public class ParticipantService {
                 }
         }
 
+        // 방장 자동 출석 처리
+        Participant hostParticipant = participantRepository.findByRoomIdAndUserId(roomId, hostId)
+                .orElseThrow(() -> new BusinessException(ErrorCode.PARTICIPANT_NOT_FOUND));
+        hostParticipant.updateAttendanceStatus(AttendanceStatus.ATTENDED);
+        trustScoreService.addAttendance(hostId);
+
         // 출석 체크 완료 알림
         notificationService.notifyRoom(roomId, RoomNotification.builder()
                 .type("GAME_CLOSED")
