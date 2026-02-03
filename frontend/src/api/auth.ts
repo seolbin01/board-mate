@@ -1,5 +1,5 @@
 import client from './client';
-import type { ApiResponse, AuthResponse, User } from '../types';
+import type { ApiResponse, User } from '../types';
 
 // JWT 디코딩 함수
 const parseJwt = (token: string): { sub: string; email: string; role: string } => {
