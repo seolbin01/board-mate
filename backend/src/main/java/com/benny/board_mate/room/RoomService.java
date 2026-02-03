@@ -9,6 +9,7 @@ import com.benny.board_mate.participant.ParticipantRepository;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
 import com.benny.board_mate.room.dto.RoomSearchRequest;
+import com.benny.board_mate.participant.Participant;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -89,5 +90,14 @@ public class RoomService {
         }
 
         room.softDelete();
+    }
+
+    public List<RoomResponse> getMyRooms(Long userId) {
+        return participantRepository.findByUserId(userId).stream()
+                .map(Participant::getRoom)
+                .filter(room -> room.getDeletedAt() == null)
+                .sorted((r1, r2) -> r2.getCreatedAt().compareTo(r1.getCreatedAt()))
+                .map(RoomResponse::from)
+                .toList();
     }
 }

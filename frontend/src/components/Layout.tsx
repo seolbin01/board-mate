@@ -18,8 +18,14 @@ export default function Layout() {
             🎲 BoardMate
           </Link>
           <div className="flex items-center gap-4">
-            <Link 
-              to="/profile" 
+            <Link
+              to="/my-rooms"
+              className="text-gray-600 hover:text-indigo-600"
+            >
+              내 모임
+            </Link>
+            <Link
+              to="/profile"
               className="text-gray-600 hover:text-indigo-600"
             >
               {user?.nickname || '사용자'}
