@@ -4,11 +4,7 @@
 
 Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들고 참여할 수 있는 매칭 플랫폼입니다.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.2-6DB33F?logo=springboot&logoColor=white)
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?logo=typescript&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+👉 **[Demo 바로가기](https://board-mate-rho.vercel.app)**
 
 ---
 
