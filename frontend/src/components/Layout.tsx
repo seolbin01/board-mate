@@ -1,5 +1,5 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Dice6, Users, User, LogOut } from 'lucide-react';
+import { Dice6, Users, User, LogOut, MessageCircleQuestion } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
 
 export default function Layout() {
@@ -26,6 +26,13 @@ export default function Layout() {
             >
               <Users className="w-4 h-4" />
               <span>내 모임</span>
+            </Link>
+            <Link
+              to="/rulemaster"
+              className="flex items-center gap-2 text-gray-700 hover:text-orange-600 transition-colors font-medium"
+            >
+              <MessageCircleQuestion className="w-4 h-4" />
+              <span>규칙 챗봇</span>
             </Link>
             <Link
               to="/profile"
