@@ -15,7 +15,7 @@ export interface Room {
   id: number;
   hostNickname: string;
   gameTitle: string;
-  gameId?: number; // BGG ID (optional for legacy rooms)
+  bggId?: number; // BoardGameGeek ID
   region: string;
   cafeName?: string;
   gameDate: string;

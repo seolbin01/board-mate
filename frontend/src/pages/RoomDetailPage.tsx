@@ -351,10 +351,10 @@ export default function RoomDetailPage() {
           </div>
 
           {/* 룰마스터 버튼 */}
-          {room.gameId && (
+          {room.bggId && (
             <div className="pt-2">
               <button
-                onClick={() => navigate(`/rulemaster?bggId=${room.gameId}`)}
+                onClick={() => navigate(`/rulemaster?bggId=${room.bggId}`)}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors text-sm font-medium"
               >
                 <BookOpen size={16} />

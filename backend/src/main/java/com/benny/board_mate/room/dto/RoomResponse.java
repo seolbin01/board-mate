@@ -14,6 +14,7 @@ public class RoomResponse {
     private Long id;
     private String hostNickname;
     private String gameTitle;
+    private Long bggId;
     private String region;
     private String cafeName;
     private LocalDateTime gameDate;
@@ -28,6 +29,7 @@ public class RoomResponse {
                 .id(room.getId())
                 .hostNickname(room.getHost().getNickname())
                 .gameTitle(room.getGame().getTitle())
+                .bggId(room.getGame().getBggId())
                 .region(room.getRegion())
                 .cafeName(room.getCafeName())
                 .gameDate(room.getGameDate())
