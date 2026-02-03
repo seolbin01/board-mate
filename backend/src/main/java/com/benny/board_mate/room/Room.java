@@ -87,16 +87,19 @@ public class Room extends BaseEntity {
     public void startGame() {
         this.roomStatus = RoomStatus.PLAYING;
     }
-
-    public void closeRoom() {
-        this.roomStatus = RoomStatus.CLOSED;
-    }
-
+    
     public boolean isHost(User user) {
         return this.host.getId().equals(user.getId());
     }
 
     public boolean isFull() {
         return this.currentParticipants >= this.maxParticipants;
+    }
+
+    public void closeRoom() {
+        if (this.roomStatus != RoomStatus.WAITING && this.roomStatus != RoomStatus.FULL) {
+            throw new IllegalStateException("이미 종료된 방입니다");
+        }
+        this.roomStatus = RoomStatus.CLOSED;
     }
 }

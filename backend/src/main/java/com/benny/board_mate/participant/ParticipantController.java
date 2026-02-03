@@ -1,6 +1,7 @@
 package com.benny.board_mate.participant;
 
 import com.benny.board_mate.common.response.ApiResponse;
+import com.benny.board_mate.participant.dto.AttendanceCheckRequest;
 import com.benny.board_mate.participant.dto.ParticipantResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -40,5 +41,15 @@ public class ParticipantController {
     public ResponseEntity<ApiResponse<List<ParticipantResponse>>> getParticipants(
             @PathVariable Long roomId) {
         return ResponseEntity.ok(ApiResponse.ok(participantService.getParticipants(roomId)));
+    }
+
+    @PostMapping("/attendance")
+    public ResponseEntity<ApiResponse<Void>> checkAttendance(
+            Authentication authentication,
+            @PathVariable Long roomId,
+            @RequestBody AttendanceCheckRequest request) {
+        Long userId = (Long) authentication.getPrincipal();
+        participantService.checkAttendance(userId, roomId, request);
+        return ResponseEntity.ok(ApiResponse.ok());
     }
 }

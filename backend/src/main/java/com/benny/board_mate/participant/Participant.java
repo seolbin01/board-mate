@@ -55,4 +55,8 @@ public class Participant {
         this.attendanceStatus = AttendanceStatus.CANCELLED;
         this.cancelledAt = LocalDateTime.now();
     }
+    
+    public void updateAttendanceStatus(AttendanceStatus status) {
+        this.attendanceStatus = status;
+    }
 }
