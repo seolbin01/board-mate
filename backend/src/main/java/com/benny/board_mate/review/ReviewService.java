@@ -1,5 +1,6 @@
 package com.benny.board_mate.review;
 
+import com.benny.board_mate.common.config.RedisConfig;
 import com.benny.board_mate.common.exception.BusinessException;
 import com.benny.board_mate.common.exception.ErrorCode;
 import com.benny.board_mate.participant.ParticipantRepository;
@@ -12,6 +13,8 @@ import com.benny.board_mate.room.RoomStatus;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +31,7 @@ public class ReviewService {
     private final ParticipantRepository participantRepository;
 
     @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_USER_RATING, key = "#request.revieweeId")
     public ReviewResponse createReview(Long reviewerId, ReviewCreateRequest request) {
         // 자기 자신한테 리뷰 불가
         if (reviewerId.equals(request.getRevieweeId())) {
@@ -77,6 +81,7 @@ public class ReviewService {
         return ReviewResponse.from(review);
     }
 
+    @Cacheable(value = RedisConfig.CACHE_USER_RATING, key = "#userId")
     public UserReviewSummary getUserReviews(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));

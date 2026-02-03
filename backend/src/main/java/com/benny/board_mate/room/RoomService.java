@@ -1,5 +1,6 @@
 package com.benny.board_mate.room;
 
+import com.benny.board_mate.common.config.RedisConfig;
 import com.benny.board_mate.common.exception.BusinessException;
 import com.benny.board_mate.common.exception.ErrorCode;
 import com.benny.board_mate.game.BoardGame;
@@ -9,10 +10,11 @@ import com.benny.board_mate.participant.ParticipantRepository;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
 import com.benny.board_mate.room.dto.RoomSearchRequest;
-import com.benny.board_mate.participant.Participant;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -32,6 +34,7 @@ public class RoomService {
     private final ParticipantRepository participantRepository;
 
     @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_ROOMS, allEntries = true)
     public RoomResponse createRoom(Long userId, RoomCreateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND));
@@ -68,14 +71,38 @@ public class RoomService {
     }
 
     public Page<RoomResponse> searchRooms(RoomSearchRequest request) {
-        PageRequest pageable = PageRequest.of(
-                request.getPage(),
-                request.getSize(),
-                Sort.by(Sort.Direction.DESC, "createdAt")
-        );
+        // 필터가 있으면 캐시 없이 DB 조회
+        if (request.getRegion() != null || request.getGameId() != null || request.getDate() != null) {
+            PageRequest pageable = PageRequest.of(
+                    request.getPage(),
+                    request.getSize(),
+                    Sort.by(Sort.Direction.DESC, "createdAt")
+            );
+            return roomRepository.findAll(RoomSpecification.searchRooms(request), pageable)
+                    .map(RoomResponse::from);
+        }
 
-        return roomRepository.findAll(RoomSpecification.searchRooms(request), pageable)
-                .map(RoomResponse::from);
+        // 필터 없으면 캐시된 전체 목록에서 페이지네이션
+        List<RoomResponse> cachedRooms = getCachedWaitingRooms();
+        int start = request.getPage() * request.getSize();
+        int end = Math.min(start + request.getSize(), cachedRooms.size());
+
+        if (start >= cachedRooms.size()) {
+            return Page.empty();
+        }
+
+        List<RoomResponse> pageContent = cachedRooms.subList(start, end);
+        PageRequest pageable = PageRequest.of(request.getPage(), request.getSize());
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, cachedRooms.size());
+    }
+
+    @Cacheable(value = RedisConfig.CACHE_ROOMS, key = "'waiting'")
+    public List<RoomResponse> getCachedWaitingRooms() {
+        return roomRepository.findAll(RoomSpecification.searchRooms(new RoomSearchRequest()),
+                Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(RoomResponse::from)
+                .toList();
     }
 
     public RoomResponse getRoom(Long roomId) {
@@ -85,6 +112,7 @@ public class RoomService {
     }
 
     @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_ROOMS, allEntries = true)
     public void deleteRoom(Long userId, Long roomId) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));

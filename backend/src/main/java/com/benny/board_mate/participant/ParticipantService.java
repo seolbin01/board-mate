@@ -1,5 +1,6 @@
 package com.benny.board_mate.participant;
 
+import com.benny.board_mate.common.config.RedisConfig;
 import com.benny.board_mate.common.exception.BusinessException;
 import com.benny.board_mate.common.exception.ErrorCode;
 import com.benny.board_mate.notification.NotificationService;
@@ -12,6 +13,7 @@ import com.benny.board_mate.trust.TrustScoreService;
 import com.benny.board_mate.user.User;
 import com.benny.board_mate.user.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ public class ParticipantService {
     private final TrustScoreService trustScoreService;
 
     @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_ROOMS, allEntries = true)
     public ParticipantResponse joinRoom(Long userId, Long roomId) {
         Room room = roomRepository.findByIdForUpdate(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
@@ -71,6 +74,7 @@ public class ParticipantService {
     }
 
     @Transactional
+    @CacheEvict(value = RedisConfig.CACHE_ROOMS, allEntries = true)
     public void leaveRoom(Long userId, Long roomId) {
         Room room = roomRepository.findByIdForUpdate(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
@@ -108,7 +112,8 @@ public class ParticipantService {
     }
 
     @Transactional
-        public void checkAttendance(Long hostId, Long roomId, AttendanceCheckRequest request) {
+    @CacheEvict(value = RedisConfig.CACHE_ROOMS, allEntries = true)
+    public void checkAttendance(Long hostId, Long roomId, AttendanceCheckRequest request) {
         Room room = roomRepository.findById(roomId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.ROOM_NOT_FOUND));
 
