@@ -28,13 +28,6 @@ export default function Layout() {
               <span>내 모임</span>
             </Link>
             <Link
-              to="/rulemaster"
-              className="flex items-center gap-2 text-gray-700 hover:text-orange-600 transition-colors font-medium"
-            >
-              <MessageCircleQuestion className="w-4 h-4" />
-              <span>규칙 챗봇</span>
-            </Link>
-            <Link
               to="/profile"
               className="flex items-center gap-2 text-gray-700 hover:text-orange-600 transition-colors font-medium"
             >
@@ -54,6 +47,18 @@ export default function Layout() {
       <main className="max-w-6xl mx-auto px-4 py-6">
         <Outlet />
       </main>
+
+      {/* 규칙 챗봇 FAB */}
+      <Link
+        to="/rulemaster"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-50"
+        title="규칙 챗봇"
+      >
+        <MessageCircleQuestion className="w-6 h-6" />
+        <span className="absolute right-full mr-3 px-3 py-1.5 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+          규칙 챗봇
+        </span>
+      </Link>
     </div>
   );
 }
