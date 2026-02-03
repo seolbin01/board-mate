@@ -27,6 +27,7 @@ import client from '../api/client';
 import { reviewApi } from '../api/review';
 import { chatApi } from '../api/chat';
 import { useAuthStore } from '../stores/authStore';
+import { useRuleMasterStore } from '../stores/ruleMasterStore';
 import type { Room, ApiResponse, ChatMessage } from '../types';
 
 interface Participant {
@@ -50,6 +51,7 @@ export default function RoomDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
+  const openRuleMaster = useRuleMasterStore((state) => state.open);
 
   const [room, setRoom] = useState<Room | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -354,7 +356,7 @@ export default function RoomDetailPage() {
           {room.bggId && (
             <div className="pt-2">
               <button
-                onClick={() => navigate(`/rulemaster?bggId=${room.bggId}`)}
+                onClick={() => openRuleMaster(room.bggId)}
                 className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors text-sm font-medium"
               >
                 <BookOpen size={16} />
