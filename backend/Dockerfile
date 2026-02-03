@@ -1,8 +1,9 @@
 # Build stage
-FROM gradle:8.11-jdk25 AS build
+FROM eclipse-temurin:25-jdk AS build
 WORKDIR /app
 COPY . .
-RUN gradle build -x test --no-daemon
+RUN chmod +x gradlew
+RUN ./gradlew build -x test --no-daemon
 
 # Runtime stage
 FROM eclipse-temurin:25-jre-alpine
