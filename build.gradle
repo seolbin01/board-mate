@@ -37,8 +37,8 @@ dependencies {
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.6'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.6'
 
-    // Redisson (분산 락)
-    implementation 'org.redisson:redisson-spring-boot-starter:3.40.2'
+    // Redisson (분산 락): 일단 주석 처리 — 분산 락 구현할 때 호환 버전 찾아서 다시 추가
+    // implementation 'org.redisson:redisson-spring-boot-starter:3.40.2'
 
     // API 문서
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
@@ -46,16 +46,10 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-data-redis-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
-	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    // Testcontainers
-    testImplementation 'org.testcontainers:postgresql'
-    testImplementation 'org.testcontainers:junit-jupiter'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.testcontainers:postgresql:1.19.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
