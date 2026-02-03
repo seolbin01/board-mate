@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -19,12 +19,14 @@ import {
   Crown,
   Star,
   X,
-  Send
+  Send,
+  MessageCircle
 } from 'lucide-react';
 import client from '../api/client';
 import { reviewApi } from '../api/review';
+import { chatApi } from '../api/chat';
 import { useAuthStore } from '../stores/authStore';
-import type { Room, ApiResponse } from '../types';
+import type { Room, ApiResponse, ChatMessage } from '../types';
 
 interface Participant {
   id: number;
@@ -68,6 +70,13 @@ export default function RoomDetailPage() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewedUsers, setReviewedUsers] = useState<Set<number>>(new Set());
 
+  // 채팅 관련 상태
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [sendingChat, setSendingChat] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const stompClientRef = useRef<Client | null>(null);
+
   // 방 정보 & 참가자 조회
   const fetchRoom = async () => {
     try {
@@ -84,15 +93,44 @@ export default function RoomDetailPage() {
     }
   };
 
+  // 채팅 내역 조회
+  const fetchChatHistory = async () => {
+    try {
+      const messages = await chatApi.getChatHistory(Number(id));
+      setChatMessages(messages);
+    } catch (error) {
+      console.error('채팅 내역 조회 실패:', error);
+    }
+  };
+
+  // 채팅 스크롤
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [chatMessages]);
+
   // WebSocket 연결
   useEffect(() => {
+    let isMounted = true;
+    let stompClient: Client | null = null;
+
     fetchRoom();
+    fetchChatHistory();
 
     const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws';
-    const stompClient = new Client({
-      webSocketFactory: () => new SockJS(wsUrl),
+    const token = localStorage.getItem('accessToken');
+
+    stompClient = new Client({
+      webSocketFactory: () => new SockJS(`${wsUrl}?token=${token}`),
       onConnect: () => {
+        if (!isMounted || !stompClient) return;
+
+        // 방 알림 구독
         stompClient.subscribe(`/topic/rooms/${id}`, (message) => {
+          if (!isMounted) return;
           const notification: RoomNotification = JSON.parse(message.body);
           setNotifications((prev) => [...prev, notification.message]);
 
@@ -105,13 +143,32 @@ export default function RoomDetailPage() {
           // 참가자 목록 새로고침
           fetchRoom();
         });
+
+        // 채팅 메시지 구독
+        stompClient.subscribe(`/topic/chat/${id}`, (message) => {
+          if (!isMounted) return;
+          const chatMessage: ChatMessage = JSON.parse(message.body);
+          setChatMessages((prev) => {
+            // 중복 메시지 방지
+            if (prev.some((m) => m.id === chatMessage.id)) {
+              return prev;
+            }
+            return [...prev, chatMessage];
+          });
+        });
+
+        stompClientRef.current = stompClient;
       },
     });
 
     stompClient.activate();
 
     return () => {
-      stompClient.deactivate();
+      isMounted = false;
+      if (stompClient) {
+        stompClient.deactivate();
+      }
+      stompClientRef.current = null;
     };
   }, [id]);
 
@@ -147,6 +204,40 @@ export default function RoomDetailPage() {
       navigate('/');
     } catch (err: any) {
       alert(err.response?.data?.message || '삭제에 실패했습니다');
+    }
+  };
+
+  // 채팅 메시지 전송
+  const handleSendChat = async () => {
+    if (!chatInput.trim() || !user || sendingChat) return;
+
+    setSendingChat(true);
+    try {
+      // WebSocket으로 전송 시도
+      if (stompClientRef.current?.connected) {
+        stompClientRef.current.publish({
+          destination: `/app/chat/${id}`,
+          body: JSON.stringify({ content: chatInput.trim() }),
+        });
+        setChatInput('');
+      } else {
+        // WebSocket 연결 안 되면 REST API 폴백
+        await chatApi.sendMessage(Number(id), chatInput.trim());
+        setChatInput('');
+        fetchChatHistory();
+      }
+    } catch (error) {
+      console.error('메시지 전송 실패:', error);
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
+  // 채팅 입력 엔터 키 처리 (한글 IME 중복 방지)
+  const handleChatKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      handleSendChat();
     }
   };
 
@@ -417,6 +508,72 @@ export default function RoomDetailPage() {
           </button>
         )}
       </div>
+
+      {/* 채팅 섹션 - 참가자만 */}
+      {isParticipant && room.roomStatus !== 'CLOSED' && (
+        <div className="bg-white rounded-xl shadow-md border border-stone-200 p-6 mb-4">
+          <h2 className="font-bold text-lg flex items-center gap-2 text-stone-800 mb-4">
+            <MessageCircle size={20} className="text-orange-600" />
+            채팅
+          </h2>
+
+          {/* 메시지 목록 */}
+          <div className="h-64 overflow-y-auto bg-stone-50 rounded-xl p-4 mb-4 space-y-3">
+            {chatMessages.length === 0 ? (
+              <p className="text-center text-stone-400 text-sm py-8">
+                아직 메시지가 없습니다. 첫 메시지를 보내보세요!
+              </p>
+            ) : (
+              chatMessages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex flex-col ${msg.senderId === user?.id ? 'items-end' : 'items-start'}`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs text-stone-500">{msg.senderNickname}</span>
+                    <span className="text-xs text-stone-400">
+                      {new Date(msg.createdAt).toLocaleTimeString('ko-KR', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </span>
+                  </div>
+                  <div
+                    className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                      msg.senderId === user?.id
+                        ? 'bg-orange-500 text-white rounded-br-md'
+                        : 'bg-white border border-stone-200 text-stone-800 rounded-bl-md'
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap break-words">{msg.content}</p>
+                  </div>
+                </div>
+              ))
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* 입력창 */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={handleChatKeyDown}
+              placeholder="메시지를 입력하세요..."
+              className="flex-1 px-4 py-3 border border-stone-200 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              maxLength={500}
+            />
+            <button
+              onClick={handleSendChat}
+              disabled={!chatInput.trim() || sendingChat}
+              className="px-4 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* 실시간 알림 */}
       {notifications.length > 0 && (

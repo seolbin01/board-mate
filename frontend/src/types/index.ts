@@ -80,3 +80,12 @@ export interface UserReviewSummary {
   reviewCount: number;
   reviews: Review[];
 }
+
+export interface ChatMessage {
+  id: number;
+  roomId: number;
+  senderId: number;
+  senderNickname: string;
+  content: string;
+  createdAt: string;
+}
