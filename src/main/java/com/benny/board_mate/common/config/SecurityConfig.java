@@ -23,14 +23,19 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // 인증 없이 접근 가능
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/games/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/ws-test.html").permitAll()
+                        .requestMatchers("/*.html", "/css/**", "/js/**").permitAll()
+                        // Swagger
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        // 나머지는 인증 필요
+                        .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

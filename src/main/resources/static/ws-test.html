@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>BoardMate WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; margin: 10px 0; }
+        .msg { padding: 5px; border-bottom: 1px solid #eee; }
+        .join { color: green; }
+        .leave { color: red; }
+        .full { color: blue; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        input { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🎲 BoardMate WebSocket Test</h1>
+    
+    <div>
+        <input type="number" id="roomId" placeholder="Room ID" value="1">
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    
+    <div id="status">Status: Disconnected</div>
+    <div id="messages"></div>
+
+    <script>
+        let stompClient = null;
+
+        function connect() {
+            const roomId = document.getElementById('roomId').value;
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            
+            stompClient.connect({}, function(frame) {
+                setStatus('Connected to Room ' + roomId);
+                
+                // 방 알림 구독
+                stompClient.subscribe('/topic/rooms/' + roomId, function(message) {
+                    showMessage(JSON.parse(message.body));
+                });
+                
+                addLog('✅ 구독 시작: /topic/rooms/' + roomId);
+            }, function(error) {
+                setStatus('Error: ' + error);
+            });
+        }
+
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+            }
+            setStatus('Disconnected');
+            addLog('❌ 연결 해제');
+        }
+
+        function showMessage(notification) {
+            const div = document.createElement('div');
+            div.className = 'msg ' + notification.type.toLowerCase();
+            div.innerHTML = `
+                <strong>[${notification.type}]</strong> ${notification.message}<br>
+                <small>참가자: ${notification.currentParticipants}/${notification.maxParticipants} | ${notification.timestamp}</small>
+            `;
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+        }
+
+        function addLog(text) {
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.textContent = text;
+            document.getElementById('messages').appendChild(div);
+        }
+
+        function setStatus(text) {
+            document.getElementById('status').textContent = 'Status: ' + text;
+        }
+    </script>
+</body>
+</html>
