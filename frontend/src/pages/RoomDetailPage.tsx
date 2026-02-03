@@ -76,8 +76,9 @@ export default function RoomDetailPage() {
   useEffect(() => {
     fetchRoom();
 
+    const wsUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8080/ws';
     const stompClient = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS(wsUrl),
       onConnect: () => {
         stompClient.subscribe(`/topic/rooms/${id}`, (message) => {
           const notification: RoomNotification = JSON.parse(message.body);
