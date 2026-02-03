@@ -29,3 +29,13 @@ WHERE NOT EXISTS (SELECT 1 FROM board_games WHERE title = '다빈치 코드');
 INSERT INTO board_games (title, bgg_id, min_players, max_players, playtime, difficulty, description, created_at, updated_at)
 SELECT '할리갈리', 2944, 2, 6, 15, '초급', '과일 카드 순발력 게임', NOW(), NOW()
 WHERE NOT EXISTS (SELECT 1 FROM board_games WHERE title = '할리갈리');
+
+-- 기존 데이터 BGG ID 업데이트
+UPDATE board_games SET bgg_id = 13 WHERE title = '카탄' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 811 WHERE title = '루미큐브' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 148228 WHERE title = '스플렌더' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 9209 WHERE title = '티켓 투 라이드' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 31260 WHERE title = '아그리콜라' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 3955 WHERE title = '뱅' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 2279 WHERE title = '다빈치 코드' AND bgg_id IS NULL;
+UPDATE board_games SET bgg_id = 2944 WHERE title = '할리갈리' AND bgg_id IS NULL;
