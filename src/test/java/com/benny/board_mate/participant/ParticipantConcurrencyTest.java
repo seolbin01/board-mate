@@ -1,0 +1,149 @@
+package com.benny.board_mate.participant;
+
+import com.benny.board_mate.game.BoardGame;
+import com.benny.board_mate.game.GameRepository;
+import com.benny.board_mate.room.Room;
+import com.benny.board_mate.room.RoomRepository;
+import com.benny.board_mate.user.User;
+import com.benny.board_mate.user.UserRepository;
+import com.benny.board_mate.trust.TrustScore;
+import com.benny.board_mate.trust.TrustScoreRepository;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.DirtiesContext;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
+class ParticipantConcurrencyTest {
+
+    @Autowired
+    private ParticipantService participantService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private GameRepository gameRepository;
+
+    @Autowired
+    private ParticipantRepository participantRepository;
+
+    @Autowired
+    private TrustScoreRepository trustScoreRepository;
+
+    private Room testRoom;
+    private BoardGame testGame;
+    private static final int MAX_PARTICIPANTS = 4;
+    private static final int CONCURRENT_USERS = 100;
+
+    @BeforeEach
+    void setUp() {
+        String uniqueId = String.valueOf(System.currentTimeMillis());
+        
+        // 게임은 재사용
+        testGame = gameRepository.findAll().stream().findFirst()
+                .orElseGet(() -> gameRepository.save(BoardGame.builder()
+                        .title("테스트게임")
+                        .minPlayers(2)
+                        .maxPlayers(4)
+                        .build()));
+    
+        // 방장 생성 - 유니크한 이름
+        User host = createUserWithTrustScore("host_" + uniqueId + "@test.com", "방장_" + uniqueId);
+    
+        // 방 생성
+        testRoom = roomRepository.save(Room.builder()
+                .host(host)
+                .game(testGame)
+                .region("서울")
+                .gameDate(LocalDateTime.now().plusDays(1))
+                .maxParticipants(MAX_PARTICIPANTS)
+                .build());
+    
+        participantRepository.save(Participant.builder()
+                .room(testRoom)
+                .user(host)
+                .build());
+    }
+
+    private User createUserWithTrustScore(String email, String nickname) {
+        User user = userRepository.save(User.builder()
+                .email(email)
+                .password("password")
+                .nickname(nickname)
+                .role("USER")
+                .build());
+    
+        trustScoreRepository.save(TrustScore.builder()
+                .user(user)
+                .score(100)
+                .build());
+    
+        return user;
+    }
+
+    @Test
+    @DisplayName("비관적 락: 100명 동시 참가 시 정원(4명) 초과 방지")
+    void pessimisticLock_preventOverbooking() throws InterruptedException {
+        String uniqueId = String.valueOf(System.currentTimeMillis());
+        
+        // Given: 100명의 유저 생성
+        List<User> users = new ArrayList<>();
+        for (int i = 0; i < CONCURRENT_USERS; i++) {
+            users.add(createUserWithTrustScore(
+                "user" + i + "_" + uniqueId + "@test.com", 
+                "유저" + i + "_" + uniqueId));
+        }
+        ExecutorService executor = Executors.newFixedThreadPool(32);
+        CountDownLatch latch = new CountDownLatch(CONCURRENT_USERS);
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
+        // When: 100명이 동시에 참가 시도
+        for (User user : users) {
+            executor.submit(() -> {
+                try {
+                    participantService.joinRoom(user.getId(), testRoom.getId());
+                    successCount.incrementAndGet();
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        // Then: 정확히 3명만 추가 참가 성공 (방장 포함 총 4명)
+        Room updatedRoom = roomRepository.findById(testRoom.getId()).orElseThrow();
+        int participantCount = participantRepository.findByRoom(updatedRoom).size();
+
+        System.out.println("=== 동시성 테스트 결과 ===");
+        System.out.println("참가 성공: " + successCount.get());
+        System.out.println("참가 실패: " + failCount.get());
+        System.out.println("실제 참가자 수: " + participantCount);
+        System.out.println("Room.currentParticipants: " + updatedRoom.getCurrentParticipants());
+
+        assertThat(participantCount).isEqualTo(MAX_PARTICIPANTS);
+        assertThat(updatedRoom.getCurrentParticipants()).isEqualTo(MAX_PARTICIPANTS);
+        assertThat(successCount.get()).isEqualTo(MAX_PARTICIPANTS - 1); // 방장 제외 3명
+    }
+}

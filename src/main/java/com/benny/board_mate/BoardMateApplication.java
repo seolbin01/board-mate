@@ -9,5 +9,4 @@ public class BoardMateApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(BoardMateApplication.class, args);
 	}
-
 }

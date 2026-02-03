@@ -8,6 +8,8 @@ import lombok.*;
 @Table(name = "board_games")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class BoardGame extends BaseEntity {
 
     @Id

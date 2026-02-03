@@ -10,6 +10,8 @@ import java.time.LocalDateTime;
 @Table(name = "trust_scores")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@AllArgsConstructor
 public class TrustScore {
 
     @Id
@@ -20,21 +22,26 @@ public class TrustScore {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int score;
+    private int score = 100;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int totalParticipations;
+    private int totalParticipations = 0;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int attendedCount;
+    private int attendedCount = 0;
 
+    @Builder.Default
     @Column(nullable = false)
-    private int noShowCount;
+    private int noShowCount = 0;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    // AuthService에서 사용하는 생성자
     public TrustScore(User user) {
         this.user = user;
         this.score = 100;
@@ -42,6 +49,13 @@ public class TrustScore {
         this.attendedCount = 0;
         this.noShowCount = 0;
         this.updatedAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.updatedAt == null) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public void addAttendance() {
