@@ -20,7 +20,8 @@ import {
   Star,
   X,
   Send,
-  MessageCircle
+  MessageCircle,
+  BookOpen
 } from 'lucide-react';
 import client from '../api/client';
 import { reviewApi } from '../api/review';
@@ -348,6 +349,19 @@ export default function RoomDetailPage() {
             <MapPin size={20} className="text-orange-600" />
             <h1 className="text-2xl font-bold">{room.region}</h1>
           </div>
+
+          {/* 룰마스터 버튼 */}
+          {room.gameId && (
+            <div className="pt-2">
+              <button
+                onClick={() => navigate(`/rulemaster?bggId=${room.gameId}`)}
+                className="flex items-center gap-2 px-4 py-2 bg-purple-50 text-purple-700 rounded-xl hover:bg-purple-100 transition-colors text-sm font-medium"
+              >
+                <BookOpen size={16} />
+                룰마스터에게 물어보기
+              </button>
+            </div>
+          )}
 
           {room.cafeName && (
             <div className="flex items-center gap-3 text-stone-600">

@@ -34,6 +34,20 @@ jwt:
   access-token-expiry: 3600000
   refresh-token-expiry: 604800000
 
+rulemaster:
+  gemini:
+    api-key: ${GEMINI_API_KEY:your-api-key-here}
+    model: gemini-1.5-flash
+    max-tokens: 2000
+    temperature: 0.7
+    timeout: 30000
+  bgg:
+    base-url: https://boardgamegeek.com/xmlapi2
+    timeout: 10000
+  conversation:
+    max-history: 20
+    ttl-hours: 24
+
 logging:
   level:
     org.hibernate.SQL: debug

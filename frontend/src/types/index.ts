@@ -15,6 +15,7 @@ export interface Room {
   id: number;
   hostNickname: string;
   gameTitle: string;
+  gameId?: number; // BGG ID (optional for legacy rooms)
   region: string;
   cafeName?: string;
   gameDate: string;
@@ -88,4 +89,55 @@ export interface ChatMessage {
   senderNickname: string;
   content: string;
   createdAt: string;
+}
+
+// 룰마스터 관련 타입
+export interface BggGameSearchResult {
+  bggId: number;
+  name: string;
+  yearPublished: number;
+  thumbnailUrl?: string;
+}
+
+export interface BggGameDetail {
+  bggId: number;
+  name: string;
+  nameKorean?: string;
+  yearPublished: number;
+  description: string;
+  minPlayers: number;
+  maxPlayers: number;
+  playingTime: number;
+  minPlayTime: number;
+  maxPlayTime: number;
+  mechanics: string[];
+  categories: string[];
+  imageUrl?: string;
+  thumbnailUrl?: string;
+  averageRating: number;
+  weight: number;
+}
+
+export interface RuleMasterMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface ConversationSession {
+  bggId: number;
+  gameName: string;
+  messages: RuleMasterMessage[];
+  expiresAt?: string;
+}
+
+export interface ChatStreamEvent {
+  type: 'content' | 'done' | 'error';
+  content?: string;
+  messageId?: string;
+  error?: {
+    code: string;
+    message: string;
+    retryable: boolean;
+  };
 }
