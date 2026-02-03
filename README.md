@@ -84,48 +84,44 @@ Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들�
 ## 🏗 아키텍처
 
 ```mermaid
-flowchart TB
-    subgraph Client["🌐 Client (Browser)"]
-        FE["⚛️ React 19 + TypeScript\nVite + Tailwind CSS"]
+flowchart LR
+    subgraph Client["🌐 Browser"]
+        FE["⚛️ React 19\nTypeScript + Vite"]
     end
 
     subgraph Vercel["☁️ Vercel"]
-        FE_DEPLOY["Frontend\n(Static Hosting)"]
+        STATIC["📦 Static Hosting"]
     end
 
     subgraph Railway["🚂 Railway"]
-        BE["🍃 Spring Boot 4.0\nJava 25"]
+        BE["🍃 Spring Boot 4.0"]
 
-        subgraph Services["Services"]
-            AUTH["🔐 Auth\n(JWT)"]
-            ROOM["🏠 Room"]
-            CHAT["💬 Chat"]
-            NOTIFY["🔔 Notification"]
-        end
+        AUTH["🔐 Auth"]
+        ROOM["🏠 Room"]
+        CHAT["💬 Chat"]
+        NOTIFY["🔔 Notification"]
     end
 
-    subgraph Data["💾 Data Stores (Railway)"]
-        PG[("🐘 PostgreSQL 16\n\nusers\nrooms\nparticipants\nchat_messages\nboard_games\ntrust_scores\nreviews")]
-        REDIS[("⚡ Redis 7\n\nsessions\ncache")]
+    subgraph DB["💾 Database"]
+        PG[("🐘 PostgreSQL")]
+        REDIS[("⚡ Redis")]
     end
 
-    Client -->|"HTTPS"| Vercel
-    Vercel -->|"REST API"| BE
-    Client <-->|"WebSocket\n(STOMP/SockJS)"| BE
+    Client -->|HTTPS| Vercel
+    Vercel -->|REST API| BE
+    Client <-->|WebSocket| BE
 
-    BE --> AUTH
-    BE --> ROOM
-    BE --> CHAT
-    BE --> NOTIFY
+    BE --> AUTH & ROOM & CHAT & NOTIFY
 
-    BE -->|"JPA"| PG
-    BE -->|"Session/Cache"| REDIS
+    BE -->|JPA| PG
+    BE -->|Cache| REDIS
 
-    style Client fill:#e0f2fe,stroke:#0284c7
-    style Vercel fill:#000,stroke:#fff,color:#fff
-    style Railway fill:#0B0D0E,stroke:#fff,color:#fff
-    style PG fill:#336791,stroke:#fff,color:#fff
-    style REDIS fill:#DC382D,stroke:#fff,color:#fff
+    style Client fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+    style Vercel fill:#f3e8ff,stroke:#9333ea,color:#581c87
+    style Railway fill:#dcfce7,stroke:#22c55e,color:#166534
+    style DB fill:#fef3c7,stroke:#f59e0b,color:#92400e
+    style PG fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+    style REDIS fill:#fee2e2,stroke:#ef4444,color:#991b1b
 ```
 
 ### 도메인 모델
