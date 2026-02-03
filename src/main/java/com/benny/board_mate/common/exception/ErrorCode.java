@@ -26,12 +26,16 @@ public enum ErrorCode {
     ROOM_ALREADY_JOINED(409, "이미 참가한 방입니다"),
     ROOM_NOT_HOST(403, "방장만 가능한 작업입니다"),
     ROOM_NOT_WAITING(400, "대기 중인 방이 아닙니다"),
+    ROOM_HOST_CANNOT_LEAVE(409, "방장은 나갈 수 없습니다"),
 
     // User
     USER_NOT_FOUND(404, "사용자를 찾을 수 없습니다"),
 
     // Game
-    GAME_NOT_FOUND(404, "게임을 찾을 수 없습니다");
+    GAME_NOT_FOUND(404, "게임을 찾을 수 없습니다"),
+
+    // Participant
+    PARTICIPANT_NOT_FOUND(404, "참가 정보를 찾을 수 없습니다");
 
     private final int status;
     private final String message;
