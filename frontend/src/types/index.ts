@@ -60,3 +60,23 @@ export interface PageResponse<T> {
   totalPages: number;
   last: boolean;
 }
+
+export interface Review {
+  id: number;
+  reviewerId: number;
+  reviewerNickname: string;
+  roomId: number;
+  roomRegion: string;
+  gameTitle: string;
+  rating: number;
+  comment?: string;
+  createdAt: string;
+}
+
+export interface UserReviewSummary {
+  userId: number;
+  nickname: string;
+  averageRating: number | null;
+  reviewCount: number;
+  reviews: Review[];
+}

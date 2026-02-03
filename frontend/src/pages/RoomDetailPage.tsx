@@ -16,9 +16,13 @@ import {
   CheckCircle,
   XCircle,
   Gamepad2,
-  Crown
+  Crown,
+  Star,
+  X,
+  Send
 } from 'lucide-react';
 import client from '../api/client';
+import { reviewApi } from '../api/review';
 import { useAuthStore } from '../stores/authStore';
 import type { Room, ApiResponse } from '../types';
 
@@ -43,7 +47,7 @@ export default function RoomDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const user = useAuthStore((state) => state.user);
-  
+
   const [room, setRoom] = useState<Room | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [notifications, setNotifications] = useState<string[]>([]);
@@ -55,6 +59,14 @@ export default function RoomDetailPage() {
 
   const [attendanceMode, setAttendanceMode] = useState(false);
   const [attendances, setAttendances] = useState<Record<number, string>>({});
+
+  // 리뷰 관련 상태
+  const [reviewModalOpen, setReviewModalOpen] = useState(false);
+  const [reviewTarget, setReviewTarget] = useState<Participant | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewedUsers, setReviewedUsers] = useState<Set<number>>(new Set());
 
   // 방 정보 & 참가자 조회
   const fetchRoom = async () => {
@@ -83,13 +95,13 @@ export default function RoomDetailPage() {
         stompClient.subscribe(`/topic/rooms/${id}`, (message) => {
           const notification: RoomNotification = JSON.parse(message.body);
           setNotifications((prev) => [...prev, notification.message]);
-          
+
           // 참가자 수 업데이트
           setRoom((prev) => prev ? {
             ...prev,
             currentParticipants: notification.currentParticipants,
           } : null);
-          
+
           // 참가자 목록 새로고침
           fetchRoom();
         });
@@ -138,6 +150,36 @@ export default function RoomDetailPage() {
     }
   };
 
+  // 리뷰 모달 열기
+  const openReviewModal = (participant: Participant) => {
+    setReviewTarget(participant);
+    setReviewRating(5);
+    setReviewComment('');
+    setReviewModalOpen(true);
+  };
+
+  // 리뷰 제출
+  const handleSubmitReview = async () => {
+    if (!reviewTarget || !id) return;
+
+    setSubmittingReview(true);
+    try {
+      await reviewApi.createReview(
+        Number(id),
+        reviewTarget.userId,
+        reviewRating,
+        reviewComment || undefined
+      );
+      alert('리뷰가 등록되었습니다!');
+      setReviewedUsers(prev => new Set(prev).add(reviewTarget.userId));
+      setReviewModalOpen(false);
+    } catch (err: any) {
+      alert(err.response?.data?.message || '리뷰 등록에 실패했습니다');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-center py-10">로딩 중...</div>;
   }
@@ -173,6 +215,22 @@ export default function RoomDetailPage() {
     } catch (err: any) {
       alert(err.response?.data?.message || '출석 체크에 실패했습니다');
     }
+  };
+
+  // 별점 렌더링
+  const renderStars = (rating: number, interactive = false, onChange?: (r: number) => void) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={interactive ? 32 : 16}
+            className={`${star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'} ${interactive ? 'cursor-pointer hover:scale-110 transition-transform' : ''}`}
+            onClick={() => interactive && onChange?.(star)}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -297,32 +355,54 @@ export default function RoomDetailPage() {
                 )}
               </div>
 
-              {attendanceMode && p.userId !== user?.id && (
-                <div className="flex gap-2">
+              <div className="flex gap-2">
+                {attendanceMode && p.userId !== user?.id && (
+                  <>
+                    <button
+                      onClick={() => handleAttendanceChange(p.userId, 'ATTENDED')}
+                      className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
+                        attendances[p.userId] === 'ATTENDED'
+                          ? 'bg-emerald-500 text-white'
+                          : 'bg-stone-100 hover:bg-emerald-100 text-stone-700'
+                      }`}
+                    >
+                      <CheckCircle size={14} />
+                      출석
+                    </button>
+                    <button
+                      onClick={() => handleAttendanceChange(p.userId, 'NO_SHOW')}
+                      className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
+                        attendances[p.userId] === 'NO_SHOW'
+                          ? 'bg-rose-500 text-white'
+                          : 'bg-stone-100 hover:bg-rose-100 text-stone-700'
+                      }`}
+                    >
+                      <XCircle size={14} />
+                      노쇼
+                    </button>
+                  </>
+                )}
+
+                {/* 리뷰 버튼 - 게임 종료 후 자신이 아닌 참가자에게만 표시 */}
+                {room.roomStatus === 'CLOSED' &&
+                 isParticipant &&
+                 p.userId !== user?.id &&
+                 !reviewedUsers.has(p.userId) && (
                   <button
-                    onClick={() => handleAttendanceChange(p.userId, 'ATTENDED')}
-                    className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
-                      attendances[p.userId] === 'ATTENDED'
-                        ? 'bg-emerald-500 text-white'
-                        : 'bg-stone-100 hover:bg-emerald-100 text-stone-700'
-                    }`}
+                    onClick={() => openReviewModal(p)}
+                    className="flex items-center gap-1 text-xs px-3 py-2 bg-amber-100 text-amber-700 rounded-xl hover:bg-amber-200 font-medium transition-colors"
                   >
+                    <Star size={14} />
+                    리뷰
+                  </button>
+                )}
+                {reviewedUsers.has(p.userId) && (
+                  <span className="flex items-center gap-1 text-xs px-3 py-2 bg-stone-100 text-stone-500 rounded-xl font-medium">
                     <CheckCircle size={14} />
-                    출석
-                  </button>
-                  <button
-                    onClick={() => handleAttendanceChange(p.userId, 'NO_SHOW')}
-                    className={`flex items-center gap-1 text-xs px-3 py-2 rounded-xl font-medium transition-colors ${
-                      attendances[p.userId] === 'NO_SHOW'
-                        ? 'bg-rose-500 text-white'
-                        : 'bg-stone-100 hover:bg-rose-100 text-stone-700'
-                    }`}
-                  >
-                    <XCircle size={14} />
-                    노쇼
-                  </button>
-                </div>
-              )}
+                    리뷰 완료
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -366,7 +446,7 @@ export default function RoomDetailPage() {
           </button>
         )}
 
-        {isParticipant && !isHost && (
+        {isParticipant && !isHost && room.roomStatus !== 'CLOSED' && (
           <button
             onClick={handleLeave}
             className="flex-1 py-3 bg-stone-200 text-stone-700 rounded-xl hover:bg-stone-300 font-medium transition-colors flex items-center justify-center gap-2 shadow-md"
@@ -376,7 +456,7 @@ export default function RoomDetailPage() {
           </button>
         )}
 
-        {isHost && (
+        {isHost && room.roomStatus !== 'CLOSED' && (
           <button
             onClick={handleDelete}
             className="flex-1 py-3 bg-rose-500 text-white rounded-xl hover:bg-rose-600 font-medium transition-colors flex items-center justify-center gap-2 shadow-md"
@@ -386,6 +466,71 @@ export default function RoomDetailPage() {
           </button>
         )}
       </div>
+
+      {/* 리뷰 모달 */}
+      {reviewModalOpen && reviewTarget && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-bold text-gray-900">리뷰 작성</h3>
+              <button
+                onClick={() => setReviewModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <X size={20} className="text-gray-500" />
+              </button>
+            </div>
+
+            <div className="mb-6">
+              <p className="text-gray-600 mb-2">
+                <span className="font-semibold text-gray-900">{reviewTarget.nickname}</span>님에 대한 리뷰
+              </p>
+              <p className="text-sm text-gray-500">
+                {room.gameTitle} · {room.region}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">별점</label>
+              <div className="flex justify-center">
+                {renderStars(reviewRating, true, setReviewRating)}
+              </div>
+              <p className="text-center text-sm text-gray-500 mt-2">
+                {reviewRating === 5 ? '최고예요!' :
+                 reviewRating === 4 ? '좋아요' :
+                 reviewRating === 3 ? '보통이에요' :
+                 reviewRating === 2 ? '별로예요' : '나빠요'}
+              </p>
+            </div>
+
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                코멘트 (선택)
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                placeholder="함께한 경험을 공유해주세요..."
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-orange-500 focus:border-orange-500 resize-none"
+                rows={3}
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-400 mt-1 text-right">
+                {reviewComment.length}/500
+              </p>
+            </div>
+
+            <button
+              onClick={handleSubmitReview}
+              disabled={submittingReview}
+              className="w-full py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              <Send size={18} />
+              {submittingReview ? '등록 중...' : '리뷰 등록'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

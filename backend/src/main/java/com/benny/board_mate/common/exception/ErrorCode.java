@@ -35,7 +35,13 @@ public enum ErrorCode {
     GAME_NOT_FOUND(404, "게임을 찾을 수 없습니다"),
 
     // Participant
-    PARTICIPANT_NOT_FOUND(404, "참가 정보를 찾을 수 없습니다");
+    PARTICIPANT_NOT_FOUND(404, "참가 정보를 찾을 수 없습니다"),
+
+    // Review
+    REVIEW_SELF_NOT_ALLOWED(400, "자기 자신에게 리뷰를 작성할 수 없습니다"),
+    REVIEW_DUPLICATE(409, "이미 해당 방에서 이 유저에게 리뷰를 작성했습니다"),
+    REVIEW_ROOM_NOT_CLOSED(400, "게임이 종료된 방에서만 리뷰를 작성할 수 있습니다"),
+    REVIEW_NOT_PARTICIPANT(403, "해당 방의 참가자만 리뷰를 작성할 수 있습니다");
 
     private final int status;
     private final String message;

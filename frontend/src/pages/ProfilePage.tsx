@@ -1,25 +1,37 @@
 import { useEffect, useState } from 'react';
-import { User, Trophy, CheckCircle, XCircle } from 'lucide-react';
+import { User, Trophy, CheckCircle, XCircle, Star, MessageSquare } from 'lucide-react';
 import client from '../api/client';
-import type { ApiResponse, TrustScore } from '../types';
+import { reviewApi } from '../api/review';
+import { useAuthStore } from '../stores/authStore';
+import type { ApiResponse, TrustScore, UserReviewSummary } from '../types';
 
 export default function ProfilePage() {
+  const currentUser = useAuthStore((state) => state.user);
   const [trustScore, setTrustScore] = useState<TrustScore | null>(null);
+  const [reviewSummary, setReviewSummary] = useState<UserReviewSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrustScore = async () => {
+    const fetchData = async () => {
       try {
-        const response = await client.get<ApiResponse<TrustScore>>('/trust-scores/me');
-        setTrustScore(response.data.data);
+        const [trustRes] = await Promise.all([
+          client.get<ApiResponse<TrustScore>>('/trust-scores/me'),
+        ]);
+        setTrustScore(trustRes.data.data);
+
+        // 리뷰 정보 조회
+        if (currentUser) {
+          const reviewData = await reviewApi.getUserReviews(currentUser.id);
+          setReviewSummary(reviewData);
+        }
       } catch (error) {
-        console.error('신뢰도 조회 실패:', error);
+        console.error('데이터 조회 실패:', error);
       } finally {
         setLoading(false);
       }
     };
-    fetchTrustScore();
-  }, []);
+    fetchData();
+  }, [currentUser]);
 
   if (loading) {
     return <div className="text-center py-10">로딩 중...</div>;
@@ -34,12 +46,47 @@ export default function ProfilePage() {
     F: 'text-red-700 bg-gradient-to-br from-red-300 to-red-400',
   };
 
+  const renderStars = (rating: number) => {
+    return (
+      <div className="flex gap-0.5">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <Star
+            key={star}
+            size={16}
+            className={star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-300'}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-lg mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">내 프로필</h1>
         <p className="text-gray-600">나의 활동 기록과 신뢰도를 확인하세요</p>
       </div>
+
+      {/* 평균 별점 카드 */}
+      {reviewSummary && (
+        <div className="bg-white rounded-2xl shadow-lg shadow-orange-100/50 p-6 mb-6 border border-orange-50">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-500 rounded-xl flex items-center justify-center">
+              <Star className="w-6 h-6 text-white fill-white" />
+            </div>
+            <h2 className="font-bold text-xl text-gray-900">매너 평점</h2>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="text-4xl font-bold text-amber-500">
+              {reviewSummary.averageRating ? reviewSummary.averageRating.toFixed(1) : '-'}
+            </div>
+            <div>
+              {reviewSummary.averageRating && renderStars(Math.round(reviewSummary.averageRating))}
+              <p className="text-sm text-gray-500 mt-1">{reviewSummary.reviewCount}개의 리뷰</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 신뢰도 카드 */}
       <div className="bg-white rounded-2xl shadow-lg shadow-orange-100/50 p-8 mb-6 border border-orange-50">
@@ -87,6 +134,37 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* 받은 리뷰 목록 */}
+      {reviewSummary && reviewSummary.reviews.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-lg shadow-orange-100/50 p-6 mb-6 border border-orange-50">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-500 rounded-xl flex items-center justify-center">
+              <MessageSquare className="w-6 h-6 text-white" />
+            </div>
+            <h2 className="font-bold text-xl text-gray-900">받은 리뷰</h2>
+          </div>
+          <div className="space-y-4">
+            {reviewSummary.reviews.map((review) => (
+              <div key={review.id} className="p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <p className="font-medium text-gray-900">{review.reviewerNickname}</p>
+                    <p className="text-xs text-gray-500">{review.gameTitle} · {review.roomRegion}</p>
+                  </div>
+                  {renderStars(review.rating)}
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-gray-700 mt-2">{review.comment}</p>
+                )}
+                <p className="text-xs text-gray-400 mt-2">
+                  {new Date(review.createdAt).toLocaleDateString('ko-KR')}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 등급 안내 */}
       <div className="bg-white rounded-2xl shadow-lg shadow-orange-100/50 p-8 border border-orange-50">
