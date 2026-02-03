@@ -53,7 +53,7 @@ public class Room extends BaseEntity {
     @Version
     private Long version;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT false")
     private boolean reminderSent = false;
 
     @Builder
