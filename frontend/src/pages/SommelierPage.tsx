@@ -35,7 +35,11 @@ export default function SommelierPage() {
     if (messages.length > 0 || streamingContent) {
       // 초기 로드 시에는 즉시, 이후에는 부드럽게
       const behavior = isInitialLoad.current ? 'instant' : 'smooth';
-      chatEndRef.current?.scrollIntoView({ behavior });
+
+      // requestAnimationFrame으로 DOM 렌더링 완료 후 스크롤
+      requestAnimationFrame(() => {
+        chatEndRef.current?.scrollIntoView({ behavior });
+      });
 
       if (isInitialLoad.current && messages.length > 0) {
         isInitialLoad.current = false;
