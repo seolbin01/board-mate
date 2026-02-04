@@ -46,6 +46,9 @@ server:
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173}
 
+swagger:
+  server-url: https://board-mate-production.up.railway.app
+
 sommelier:
   gemini:
     api-key: ${GEMINI_API_KEY:}
