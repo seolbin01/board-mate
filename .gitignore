@@ -43,3 +43,6 @@ out/
 
 ### oh-my-claudecode ###
 .omc/
+
+### macOS ###
+.DS_Store
