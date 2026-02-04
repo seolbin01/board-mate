@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
+import { useState, useRef, useMemo, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Trash2, Loader2, Wine } from 'lucide-react';
 import { useSommelierChat } from '../hooks/useSommelierChat';
