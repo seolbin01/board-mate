@@ -39,6 +39,12 @@ Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들�
 - 참가자 입/퇴장 즉시 반영
 - 게임 시작 전 리마인더 알림
 
+### 🍷 보드게임 소믈리에
+- AI 기반 보드게임 추천 챗봇
+- RAG(pgvector) + Gemini API로 정확한 추천
+- 취향, 인원, 시간에 맞는 맞춤형 추천
+- SSE 스트리밍으로 실시간 응답
+
 ---
 
 ## 🛠 기술 스택
@@ -55,6 +61,7 @@ Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들�
 | Real-time | ![WebSocket](https://img.shields.io/badge/WebSocket-STOMP-010101) |
 | Build | ![Gradle](https://img.shields.io/badge/Gradle-02303A?logo=gradle&logoColor=white) |
 | Docs | ![Swagger](https://img.shields.io/badge/Swagger-85EA2D?logo=swagger&logoColor=black) |
+| AI/RAG | ![Gemini](https://img.shields.io/badge/Gemini-8E75B2?logo=googlegemini&logoColor=white) ![pgvector](https://img.shields.io/badge/pgvector-4169E1?logo=postgresql&logoColor=white) |
 
 ### Frontend
 
@@ -106,6 +113,11 @@ flowchart LR
         ROOM["🏠 Room"]
         CHAT["💬 Chat"]
         NOTIFY["🔔 Notification"]
+        SOMM["🍷 Sommelier"]
+    end
+
+    subgraph AI["🤖 AI"]
+        GEMINI["✨ Gemini API"]
     end
 
     subgraph DB["💾 Database"]
@@ -117,15 +129,18 @@ flowchart LR
     Vercel -->|REST API| BE
     Client <-->|WebSocket| BE
 
-    BE --> AUTH & ROOM & CHAT & NOTIFY
+    BE --> AUTH & ROOM & CHAT & NOTIFY & SOMM
 
     BE -->|JPA| PG
     BE -->|Cache| REDIS
+    SOMM -->|RAG| PG
+    SOMM -->|LLM| GEMINI
 
     style Client fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
     style Vercel fill:#f3e8ff,stroke:#9333ea,color:#581c87
     style Railway fill:#dcfce7,stroke:#22c55e,color:#166534
     style DB fill:#fef3c7,stroke:#f59e0b,color:#92400e
+    style AI fill:#fce7f3,stroke:#ec4899,color:#9d174d
     style PG fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
     style REDIS fill:#fee2e2,stroke:#ef4444,color:#991b1b
 ```
@@ -253,6 +268,7 @@ board-mate/
 │   │   ├── chat/           # 실시간 채팅
 │   │   ├── review/         # 리뷰/평점 시스템
 │   │   ├── notification/   # WebSocket 알림
+│   │   ├── sommelier/      # AI 보드게임 소믈리에
 │   │   └── common/         # 공통 (config, exception)
 │   ├── docker-compose.yml
 │   └── build.gradle
@@ -297,6 +313,9 @@ http://localhost:8080/swagger-ui.html
 | POST | `/api/reviews` | 리뷰 작성 |
 | GET | `/api/users/{id}/reviews` | 유저 리뷰 조회 |
 | GET | `/api/games` | 게임 목록 |
+| POST | `/api/sommelier/chat` | AI 소믈리에 채팅 (SSE) |
+| GET | `/api/sommelier/history/{sessionId}` | 대화 기록 조회 |
+| DELETE | `/api/sommelier/history/{sessionId}` | 대화 기록 삭제 |
 | WS | `/ws` | WebSocket 연결 |
 
 ---
