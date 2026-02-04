@@ -40,7 +40,6 @@ export const useSommelierChat = (sessionId: string) => {
         setStreamingContent(streamingContentRef.current);
       },
       () => {
-        console.log('[DEBUG] onDone called, content length:', streamingContentRef.current.length);
         const assistantContent = streamingContentRef.current;
         streamingContentRef.current = '';
 
@@ -48,17 +47,14 @@ export const useSommelierChat = (sessionId: string) => {
         // 이렇게 하면 messages 업데이트 전에 streamingContent가 사라지는 문제 방지
         flushSync(() => {
           if (assistantContent) {
-            setMessages(prev => {
-              console.log('[DEBUG] setMessages called, prev:', prev.length);
-              return [
-                ...prev,
-                {
-                  role: 'assistant',
-                  content: assistantContent,
-                  timestamp: new Date().toISOString(),
-                }
-              ];
-            });
+            setMessages(prev => [
+              ...prev,
+              {
+                role: 'assistant',
+                content: assistantContent,
+                timestamp: new Date().toISOString(),
+              }
+            ]);
           }
           setStreamingContent('');
           setIsStreaming(false);

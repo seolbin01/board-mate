@@ -85,7 +85,6 @@ export const createSommelierStream = (
                   onMessage(data.content);
                 } else if (data.type === 'done') {
                   // done 메시지 받으면 즉시 완료 처리
-                  console.log('[DEBUG] done message received, calling onDone');
                   isDone = true;
                   onDone();
                   return; // 스트림 읽기 종료
@@ -103,7 +102,6 @@ export const createSommelierStream = (
     } finally {
       // done 메시지로 이미 처리되지 않은 경우에만 onDone 호출
       if (!isDone) {
-        console.log('[DEBUG] finally block - calling onDone (stream ended without done message)');
         onDone();
       }
     }
