@@ -53,60 +53,48 @@ export const createSommelierStream = (
     const reader = response.body?.getReader();
     const decoder = new TextDecoder();
 
-    if (!reader) return;
+    if (!reader) {
+      onDone();
+      return;
+    }
 
-    let doneHandled = false;
     let buffer = '';
 
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
+        buffer += decoder.decode(value, { stream: true });
 
-      // 마지막 라인은 불완전할 수 있으므로 버퍼에 보관
-      buffer = lines.pop() || '';
+        // SSE 이벤트는 \n\n으로 구분됨
+        const events = buffer.split('\n\n');
+        // 마지막은 불완전할 수 있으므로 버퍼에 보관
+        buffer = events.pop() || '';
 
-      for (const line of lines) {
-        if (line.startsWith('data:')) {
-          try {
-            const jsonStr = line.slice(5).trim();
-            if (!jsonStr) continue;
-            const data = JSON.parse(jsonStr);
-            if (data.type === 'text' && data.content) {
-              onMessage(data.content);
-            } else if (data.type === 'done' || data.completed) {
-              doneHandled = true;
-              onDone();
-            } else if (data.type === 'error') {
-              onError({ code: 'API_ERROR', message: data.content || 'Unknown error' });
+        for (const event of events) {
+          const lines = event.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data:')) {
+              try {
+                const jsonStr = line.slice(5).trim();
+                if (!jsonStr) continue;
+                const data = JSON.parse(jsonStr);
+                if (data.type === 'text' && data.content) {
+                  onMessage(data.content);
+                } else if (data.type === 'error') {
+                  onError({ code: 'API_ERROR', message: data.content || 'Unknown error' });
+                }
+                // done은 여기서 처리 안 함 - 스트림 종료 시 onDone 호출
+              } catch {
+                // 파싱 에러 무시
+              }
             }
-          } catch {
-            // 파싱 에러 무시
           }
         }
       }
-    }
-
-    // 남은 버퍼 처리
-    if (buffer.startsWith('data:')) {
-      try {
-        const jsonStr = buffer.slice(5).trim();
-        if (jsonStr) {
-          const data = JSON.parse(jsonStr);
-          if (data.type === 'done' || data.completed) {
-            doneHandled = true;
-            onDone();
-          }
-        }
-      } catch {
-        // 무시
-      }
-    }
-
-    // 스트림이 끝났는데 onDone이 호출되지 않았으면 호출
-    if (!doneHandled) {
+    } finally {
+      // 스트림 종료 시 무조건 onDone 호출
       onDone();
     }
   }).catch((err) => {
