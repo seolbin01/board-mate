@@ -3,6 +3,7 @@ package com.benny.board_mate.chat;
 import com.benny.board_mate.chat.dto.ChatMessageRequest;
 import com.benny.board_mate.chat.dto.ChatMessageResponse;
 import com.benny.board_mate.common.response.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Chat", description = "채팅 - 모임방 실시간 메시지")
 @RestController
 @RequiredArgsConstructor
 public class ChatController {

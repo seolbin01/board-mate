@@ -5,6 +5,8 @@ import com.benny.board_mate.common.response.PageResponse;
 import com.benny.board_mate.room.dto.RoomCreateRequest;
 import com.benny.board_mate.room.dto.RoomResponse;
 import com.benny.board_mate.room.dto.RoomSearchRequest;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Room", description = "모임방 - 생성, 조회, 검색, 삭제")
 @RestController
 @RequestMapping("/api/rooms")
 @RequiredArgsConstructor

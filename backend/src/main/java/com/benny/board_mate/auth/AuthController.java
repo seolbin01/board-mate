@@ -4,12 +4,15 @@ import com.benny.board_mate.auth.dto.LoginRequest;
 import com.benny.board_mate.auth.dto.SignupRequest;
 import com.benny.board_mate.auth.dto.TokenResponse;
 import com.benny.board_mate.common.response.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Auth", description = "인증 - 회원가입, 로그인, 토큰 갱신")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

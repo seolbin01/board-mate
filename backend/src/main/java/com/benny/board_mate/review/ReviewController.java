@@ -4,12 +4,14 @@ import com.benny.board_mate.common.response.ApiResponse;
 import com.benny.board_mate.review.dto.ReviewCreateRequest;
 import com.benny.board_mate.review.dto.ReviewResponse;
 import com.benny.board_mate.review.dto.UserReviewSummary;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+@Tag(name = "Review", description = "리뷰 - 참가자 평가 및 조회")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor

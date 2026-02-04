@@ -3,6 +3,7 @@ package com.benny.board_mate.participant;
 import com.benny.board_mate.common.response.ApiResponse;
 import com.benny.board_mate.participant.dto.AttendanceCheckRequest;
 import com.benny.board_mate.participant.dto.ParticipantResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Participant", description = "참가자 - 모임 참가/퇴장, 출석 체크")
 @RestController
 @RequestMapping("/api/rooms/{roomId}/participants")
 @RequiredArgsConstructor

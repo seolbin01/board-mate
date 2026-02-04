@@ -5,6 +5,9 @@ import com.benny.board_mate.sommelier.dto.ChatMessage;
 import com.benny.board_mate.sommelier.dto.SommelierRequest;
 import com.benny.board_mate.sommelier.dto.SommelierResponse;
 import com.benny.board_mate.sommelier.service.SommelierService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +20,7 @@ import reactor.core.publisher.Flux;
 import java.time.Duration;
 import java.util.List;
 
+@Tag(name = "Sommelier", description = "보드게임 소믈리에 - AI 기반 게임 추천 챗봇")
 @RestController
 @RequestMapping("/api/sommelier")
 @RequiredArgsConstructor
@@ -25,6 +29,7 @@ public class SommelierController {
 
     private final SommelierService sommelierService;
 
+    @Operation(summary = "AI 채팅", description = "보드게임 추천을 위한 AI 챗봇과 대화 (SSE 스트리밍)")
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<SommelierResponse>> chat(
             @Valid @RequestBody SommelierRequest request
@@ -47,18 +52,20 @@ public class SommelierController {
                 .delayElements(Duration.ofMillis(10));
     }
 
+    @Operation(summary = "대화 기록 조회", description = "세션의 대화 기록을 조회합니다")
     @GetMapping("/history/{sessionId}")
     public ResponseEntity<ApiResponse<List<ChatMessage>>> getHistory(
-            @PathVariable String sessionId
+            @Parameter(description = "세션 ID") @PathVariable String sessionId
     ) {
         log.info("소믈리에 히스토리 조회: sessionId={}", sessionId);
         List<ChatMessage> history = sommelierService.getHistory(sessionId);
         return ResponseEntity.ok(ApiResponse.ok(history));
     }
 
+    @Operation(summary = "대화 기록 삭제", description = "세션의 대화 기록을 초기화합니다")
     @DeleteMapping("/history/{sessionId}")
     public ResponseEntity<ApiResponse<Void>> clearHistory(
-            @PathVariable String sessionId
+            @Parameter(description = "세션 ID") @PathVariable String sessionId
     ) {
         log.info("소믈리에 히스토리 삭제: sessionId={}", sessionId);
         sommelierService.clearHistory(sessionId);
