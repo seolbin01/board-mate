@@ -56,18 +56,24 @@ export const createSommelierStream = (
     if (!reader) return;
 
     let doneHandled = false;
+    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
 
-      const text = decoder.decode(value);
-      const lines = text.split('\n');
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+
+      // 마지막 라인은 불완전할 수 있으므로 버퍼에 보관
+      buffer = lines.pop() || '';
 
       for (const line of lines) {
         if (line.startsWith('data:')) {
           try {
-            const data = JSON.parse(line.slice(5));
+            const jsonStr = line.slice(5).trim();
+            if (!jsonStr) continue;
+            const data = JSON.parse(jsonStr);
             if (data.type === 'text' && data.content) {
               onMessage(data.content);
             } else if (data.type === 'done' || data.completed) {
@@ -80,6 +86,22 @@ export const createSommelierStream = (
             // 파싱 에러 무시
           }
         }
+      }
+    }
+
+    // 남은 버퍼 처리
+    if (buffer.startsWith('data:')) {
+      try {
+        const jsonStr = buffer.slice(5).trim();
+        if (jsonStr) {
+          const data = JSON.parse(jsonStr);
+          if (data.type === 'done' || data.completed) {
+            doneHandled = true;
+            onDone();
+          }
+        }
+      } catch {
+        // 무시
       }
     }
 
