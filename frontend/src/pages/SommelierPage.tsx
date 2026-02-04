@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, useLayoutEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Trash2, Loader2, Wine } from 'lucide-react';
 import { useSommelierChat } from '../hooks/useSommelierChat';
@@ -28,9 +28,19 @@ export default function SommelierPage() {
     clearMessages,
   } = useSommelierChat(sessionId);
 
-  // 채팅 스크롤
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const isInitialLoad = useRef(true);
+
+  // 채팅 스크롤 - 메시지 변경 시 맨 아래로
+  useLayoutEffect(() => {
+    if (messages.length > 0 || streamingContent) {
+      // 초기 로드 시에는 즉시, 이후에는 부드럽게
+      const behavior = isInitialLoad.current ? 'instant' : 'smooth';
+      chatEndRef.current?.scrollIntoView({ behavior });
+
+      if (isInitialLoad.current && messages.length > 0) {
+        isInitialLoad.current = false;
+      }
+    }
   }, [messages, streamingContent]);
 
   const handleSend = async () => {
