@@ -53,14 +53,18 @@ export const useSommelierChat = (sessionId: string) => {
       },
       (error) => {
         console.error('Sommelier chat error:', error);
+        // 스트리밍 콘텐츠가 있으면 유지, 없으면 에러 메시지 표시
+        const content = streamingContentRef.current || '죄송합니다, 오류가 발생했습니다. 다시 시도해주세요.';
         setMessages(prev => [
           ...prev,
           {
             role: 'assistant',
-            content: '죄송합니다, 오류가 발생했습니다. 다시 시도해주세요.',
+            content,
             timestamp: new Date().toISOString(),
           }
         ]);
+        setStreamingContent('');
+        streamingContentRef.current = '';
         setIsStreaming(false);
       }
     );
