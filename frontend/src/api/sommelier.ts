@@ -55,6 +55,8 @@ export const createSommelierStream = (
 
     if (!reader) return;
 
+    let doneHandled = false;
+
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
@@ -69,6 +71,7 @@ export const createSommelierStream = (
             if (data.type === 'text' && data.content) {
               onMessage(data.content);
             } else if (data.type === 'done' || data.completed) {
+              doneHandled = true;
               onDone();
             } else if (data.type === 'error') {
               onError({ code: 'API_ERROR', message: data.content || 'Unknown error' });
@@ -78,6 +81,11 @@ export const createSommelierStream = (
           }
         }
       }
+    }
+
+    // 스트림이 끝났는데 onDone이 호출되지 않았으면 호출
+    if (!doneHandled) {
+      onDone();
     }
   }).catch((err) => {
     if (err.name !== 'AbortError') {
