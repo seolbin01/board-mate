@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useLayoutEffect } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Send, Trash2, Loader2, Wine } from 'lucide-react';
 import { useSommelierChat } from '../hooks/useSommelierChat';
@@ -24,30 +24,17 @@ export default function SommelierPage() {
     messages,
     isStreaming,
     streamingContent,
-    isHistoryLoaded,
     sendMessage,
     clearMessages,
   } = useSommelierChat(sessionId);
 
-  const hasScrolledOnLoad = useRef(false);
-
-  // 히스토리 로드 완료 시 맨 아래로 스크롤 (즉시)
-  useLayoutEffect(() => {
-    if (isHistoryLoaded && !hasScrolledOnLoad.current) {
-      hasScrolledOnLoad.current = true;
-      requestAnimationFrame(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
-      });
-    }
-  }, [isHistoryLoaded]);
-
-  // 새 메시지 시 부드럽게 스크롤
-  useLayoutEffect(() => {
-    if (hasScrolledOnLoad.current && (messages.length > 0 || streamingContent)) {
-      requestAnimationFrame(() => {
-        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-      });
-    }
+  // 채팅 스크롤
+  useEffect(() => {
+    // DOM 렌더링 완료 후 스크롤
+    const timer = setTimeout(() => {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, streamingContent]);
 
   const handleSend = async () => {

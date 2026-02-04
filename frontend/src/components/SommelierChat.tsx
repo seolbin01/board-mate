@@ -30,9 +30,14 @@ export default function SommelierChat({ isOpen, onClose }: SommelierChatProps) {
     clearMessages,
   } = useSommelierChat(sessionId);
 
+  // 채팅창 열릴 때 또는 메시지 변경 시 스크롤
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingContent]);
+    if (isOpen) {
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    }
+  }, [isOpen, messages, streamingContent]);
 
   const handleSend = async () => {
     if (!input.trim() || isStreaming) return;
