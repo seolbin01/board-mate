@@ -92,6 +92,9 @@ Board-Mate는 보드게임을 좋아하는 사람들이 쉽게 모임을 만들�
 ### 방 상세 (실시간 참가자)
 ![방 상세](docs/images/room-detail.png)
 
+### 보드게임 소믈리에 (AI 추천)
+![소믈리에](docs/images/sommelier.png)
+
 ---
 
 ## 🏗 아키텍처
