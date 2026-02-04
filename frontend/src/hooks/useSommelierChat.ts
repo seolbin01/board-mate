@@ -6,6 +6,7 @@ export const useSommelierChat = (sessionId: string) => {
   const [messages, setMessages] = useState<SommelierMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [isHistoryLoaded, setIsHistoryLoaded] = useState(false);
   const controllerRef = useRef<AbortController | null>(null);
   const streamingContentRef = useRef('');
 
@@ -16,6 +17,7 @@ export const useSommelierChat = (sessionId: string) => {
       if (history.length > 0) {
         setMessages(history);
       }
+      setIsHistoryLoaded(true);
     };
     loadHistory();
   }, [sessionId]);
@@ -94,6 +96,7 @@ export const useSommelierChat = (sessionId: string) => {
     messages,
     isStreaming,
     streamingContent,
+    isHistoryLoaded,
     sendMessage,
     stopStreaming,
     clearMessages,

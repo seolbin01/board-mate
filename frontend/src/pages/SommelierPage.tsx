@@ -24,26 +24,29 @@ export default function SommelierPage() {
     messages,
     isStreaming,
     streamingContent,
+    isHistoryLoaded,
     sendMessage,
     clearMessages,
   } = useSommelierChat(sessionId);
 
-  const isInitialLoad = useRef(true);
+  const hasScrolledOnLoad = useRef(false);
 
-  // 채팅 스크롤 - 메시지 변경 시 맨 아래로
+  // 히스토리 로드 완료 시 맨 아래로 스크롤 (즉시)
   useLayoutEffect(() => {
-    if (messages.length > 0 || streamingContent) {
-      // 초기 로드 시에는 즉시, 이후에는 부드럽게
-      const behavior = isInitialLoad.current ? 'instant' : 'smooth';
-
-      // requestAnimationFrame으로 DOM 렌더링 완료 후 스크롤
+    if (isHistoryLoaded && !hasScrolledOnLoad.current) {
+      hasScrolledOnLoad.current = true;
       requestAnimationFrame(() => {
-        chatEndRef.current?.scrollIntoView({ behavior });
+        chatEndRef.current?.scrollIntoView({ behavior: 'instant' });
       });
+    }
+  }, [isHistoryLoaded]);
 
-      if (isInitialLoad.current && messages.length > 0) {
-        isInitialLoad.current = false;
-      }
+  // 새 메시지 시 부드럽게 스크롤
+  useLayoutEffect(() => {
+    if (hasScrolledOnLoad.current && (messages.length > 0 || streamingContent)) {
+      requestAnimationFrame(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      });
     }
   }, [messages, streamingContent]);
 
