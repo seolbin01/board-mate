@@ -1,17 +1,27 @@
-import { useState, useCallback, useRef } from 'react';
-import { createChatStream } from '../api/rulemaster';
-import type { RuleMasterMessage } from '../types';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { createSommelierStream, getHistory, type SommelierMessage } from '../api/sommelier';
 
-export const useRuleMasterChat = (bggId: number) => {
-  const [messages, setMessages] = useState<RuleMasterMessage[]>([]);
+export const useSommelierChat = (sessionId: string) => {
+  const [messages, setMessages] = useState<SommelierMessage[]>([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
   const controllerRef = useRef<AbortController | null>(null);
   const streamingContentRef = useRef('');
 
+  // 초기 히스토리 로드
+  useEffect(() => {
+    const loadHistory = async () => {
+      const history = await getHistory(sessionId);
+      if (history.length > 0) {
+        setMessages(history);
+      }
+    };
+    loadHistory();
+  }, [sessionId]);
+
   const sendMessage = useCallback(async (content: string) => {
     // 사용자 메시지 추가
-    const userMessage: RuleMasterMessage = {
+    const userMessage: SommelierMessage = {
       role: 'user',
       content,
       timestamp: new Date().toISOString(),
@@ -21,14 +31,14 @@ export const useRuleMasterChat = (bggId: number) => {
     setStreamingContent('');
     streamingContentRef.current = '';
 
-    controllerRef.current = createChatStream(
-      bggId,
+    controllerRef.current = createSommelierStream(
+      sessionId,
       content,
       (chunk) => {
         streamingContentRef.current += chunk;
         setStreamingContent(streamingContentRef.current);
       },
-      (_messageId) => {
+      () => {
         setMessages(prev => [
           ...prev,
           {
@@ -42,11 +52,19 @@ export const useRuleMasterChat = (bggId: number) => {
         setIsStreaming(false);
       },
       (error) => {
-        console.error('Chat error:', error);
+        console.error('Sommelier chat error:', error);
+        setMessages(prev => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: '죄송합니다, 오류가 발생했습니다. 다시 시도해주세요.',
+            timestamp: new Date().toISOString(),
+          }
+        ]);
         setIsStreaming(false);
       }
     );
-  }, [bggId]);
+  }, [sessionId]);
 
   const stopStreaming = useCallback(() => {
     controllerRef.current?.abort();

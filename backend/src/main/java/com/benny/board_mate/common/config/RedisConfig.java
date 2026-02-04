@@ -23,8 +23,8 @@ public class RedisConfig {
 
     public static final String CACHE_ROOMS = "rooms";
     public static final String CACHE_USER_RATING = "userRating";
-    public static final String CACHE_RULEMASTER_BGG_SEARCH = "rulemaster-bgg-search";
-    public static final String CACHE_RULEMASTER_BGG_GAME = "rulemaster-bgg-game";
+    public static final String CACHE_GAME_SEARCH = "game-search";
+    public static final String CACHE_GAME_DETAIL = "game-detail";
 
     @Bean
     public ObjectMapper redisObjectMapper() {
@@ -55,11 +55,11 @@ public class RedisConfig {
         // 유저 평균 별점 캐시: TTL 10분
         cacheConfigurations.put(CACHE_USER_RATING, defaultConfig.entryTtl(Duration.ofMinutes(10)));
 
-        // RuleMaster BGG 검색 캐시: TTL 1시간
-        cacheConfigurations.put(CACHE_RULEMASTER_BGG_SEARCH, defaultConfig.entryTtl(Duration.ofHours(1)));
+        // 게임 검색 캐시: TTL 1시간
+        cacheConfigurations.put(CACHE_GAME_SEARCH, defaultConfig.entryTtl(Duration.ofHours(1)));
 
-        // RuleMaster BGG 게임 상세 캐시: TTL 24시간
-        cacheConfigurations.put(CACHE_RULEMASTER_BGG_GAME, defaultConfig.entryTtl(Duration.ofHours(24)));
+        // 게임 상세 캐시: TTL 24시간
+        cacheConfigurations.put(CACHE_GAME_DETAIL, defaultConfig.entryTtl(Duration.ofHours(24)));
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(defaultConfig.entryTtl(Duration.ofMinutes(5)))

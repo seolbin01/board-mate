@@ -48,6 +48,12 @@ dependencies {
     // .env 파일 지원
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 
+    // CSV 파싱 (Kaggle 데이터 임포트)
+    implementation 'com.opencsv:opencsv:5.9'
+
+    // pgvector (RAG 임베딩)
+    implementation 'com.pgvector:pgvector:0.1.6'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'

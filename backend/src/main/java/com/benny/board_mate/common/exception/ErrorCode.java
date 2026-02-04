@@ -43,12 +43,10 @@ public enum ErrorCode {
     REVIEW_ROOM_NOT_CLOSED(400, "게임이 종료된 방에서만 리뷰를 작성할 수 있습니다"),
     REVIEW_NOT_PARTICIPANT(403, "해당 방의 참가자만 리뷰를 작성할 수 있습니다"),
 
-    // RuleMaster
-    RULEMASTER_GAME_NOT_FOUND(404, "BGG에서 해당 게임을 찾을 수 없습니다"),
-    RULEMASTER_BGG_API_ERROR(502, "BGG API 호출 중 오류가 발생했습니다"),
-    RULEMASTER_GEMINI_ERROR(502, "AI 서비스 연결에 실패했습니다"),
-    RULEMASTER_RATE_LIMIT(429, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요"),
-    RULEMASTER_MESSAGE_TOO_LONG(400, "메시지가 너무 깁니다 (최대 1000자)");
+    // Sommelier
+    SOMMELIER_GEMINI_ERROR(502, "AI 서비스 연결에 실패했습니다"),
+    SOMMELIER_RATE_LIMIT(429, "요청이 너무 많습니다. 잠시 후 다시 시도해주세요"),
+    SOMMELIER_MESSAGE_TOO_LONG(400, "메시지가 너무 깁니다 (최대 1000자)");
 
     private final int status;
     private final String message;

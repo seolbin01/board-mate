@@ -118,19 +118,6 @@ export interface BggGameDetail {
   weight: number;
 }
 
-export interface RuleMasterMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-}
-
-export interface ConversationSession {
-  bggId: number;
-  gameName: string;
-  messages: RuleMasterMessage[];
-  expiresAt?: string;
-}
-
 export interface ChatStreamEvent {
   type: 'content' | 'done' | 'error';
   content?: string;

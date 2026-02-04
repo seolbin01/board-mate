@@ -32,6 +32,8 @@ public class SecurityConfig {
                         // 인증 없이 접근 가능
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/games/**").permitAll()
+                        .requestMatchers("/api/sommelier/**").permitAll()
+                        .requestMatchers("/api/admin/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/rooms").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/rooms/{roomId}").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/users/{userId}/reviews").permitAll()

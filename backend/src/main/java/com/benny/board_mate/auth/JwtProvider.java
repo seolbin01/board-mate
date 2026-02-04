@@ -59,7 +59,7 @@ public class JwtProvider {
         try {
             getClaims(token);
             return true;
-        } catch (JwtException | IllegalArgumentException e) {
+        } catch (JwtException | IllegalArgumentException | BusinessException e) {
             return false;
         }
     }

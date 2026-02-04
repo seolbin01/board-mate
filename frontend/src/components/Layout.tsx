@@ -1,13 +1,10 @@
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Dice6, Users, User, LogOut, MessageCircleQuestion } from 'lucide-react';
+import { Dice6, Users, User, LogOut, Wine } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
-import { useRuleMasterStore } from '../stores/ruleMasterStore';
-import RuleMasterOverlay from './RuleMasterOverlay';
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
-  const { isOpen, bggId, open, close } = useRuleMasterStore();
 
   const handleLogout = () => {
     logout();
@@ -51,20 +48,17 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      {/* 규칙 챗봇 FAB */}
+      {/* 소믈리에 FAB */}
       <button
-        onClick={() => open()}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-40"
-        title="규칙 챗봇"
+        onClick={() => navigate('/sommelier')}
+        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-40"
+        title="보드게임 소믈리에"
       >
-        <MessageCircleQuestion className="w-6 h-6" />
+        <Wine className="w-6 h-6" />
         <span className="absolute right-full mr-3 px-3 py-1.5 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          규칙 챗봇
+          게임 추천받기
         </span>
       </button>
-
-      {/* 룰마스터 오버레이 */}
-      <RuleMasterOverlay isOpen={isOpen} onClose={close} initialBggId={bggId} />
     </div>
   );
 }
