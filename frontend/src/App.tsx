@@ -8,7 +8,6 @@ import Layout from './components/Layout';
 import CreateRoomPage from './pages/CreateRoomPage';
 import ProfilePage from './pages/ProfilePage';
 import MyRoomsPage from './pages/MyRoomsPage';
-import SommelierPage from './pages/SommelierPage';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -31,7 +30,6 @@ function App() {
           <Route path="rooms/new" element={<CreateRoomPage />} />
           <Route path="my-rooms" element={<MyRoomsPage />} />
           <Route path="profile" element={<ProfilePage />} />
-          <Route path="sommelier" element={<SommelierPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

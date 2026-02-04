@@ -1,10 +1,13 @@
+import { useState } from 'react';
 import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { Dice6, Users, User, LogOut, Wine } from 'lucide-react';
+import { Dice6, Users, User, LogOut, Wine, X } from 'lucide-react';
 import { useAuthStore } from '../stores/authStore';
+import SommelierChat from './SommelierChat';
 
 export default function Layout() {
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -48,16 +51,21 @@ export default function Layout() {
         <Outlet />
       </main>
 
+      {/* 소믈리에 채팅 */}
+      <SommelierChat isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
+
       {/* 소믈리에 FAB */}
       <button
-        onClick={() => navigate('/sommelier')}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-40"
+        onClick={() => setIsChatOpen(!isChatOpen)}
+        className={`fixed bottom-6 right-6 w-14 h-14 ${isChatOpen ? 'bg-stone-500 hover:bg-stone-600' : 'bg-purple-500 hover:bg-purple-600'} text-white rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center group z-50`}
         title="보드게임 소믈리에"
       >
-        <Wine className="w-6 h-6" />
-        <span className="absolute right-full mr-3 px-3 py-1.5 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-          게임 추천받기
-        </span>
+        {isChatOpen ? <X className="w-6 h-6" /> : <Wine className="w-6 h-6" />}
+        {!isChatOpen && (
+          <span className="absolute right-full mr-3 px-3 py-1.5 bg-gray-800 text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+            게임 추천받기
+          </span>
+        )}
       </button>
     </div>
   );
