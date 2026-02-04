@@ -59,6 +59,7 @@ export const createSommelierStream = (
     }
 
     let buffer = '';
+    let isDone = false;
 
     try {
       while (true) {
@@ -82,10 +83,16 @@ export const createSommelierStream = (
                 const data = JSON.parse(jsonStr);
                 if (data.type === 'text' && data.content) {
                   onMessage(data.content);
+                } else if (data.type === 'done') {
+                  // done 메시지 받으면 즉시 완료 처리
+                  console.log('[DEBUG] done message received, calling onDone');
+                  isDone = true;
+                  onDone();
+                  return; // 스트림 읽기 종료
                 } else if (data.type === 'error') {
                   onError({ code: 'API_ERROR', message: data.content || 'Unknown error' });
+                  return;
                 }
-                // done은 여기서 처리 안 함 - 스트림 종료 시 onDone 호출
               } catch {
                 // 파싱 에러 무시
               }
@@ -94,8 +101,11 @@ export const createSommelierStream = (
         }
       }
     } finally {
-      // 스트림 종료 시 무조건 onDone 호출
-      onDone();
+      // done 메시지로 이미 처리되지 않은 경우에만 onDone 호출
+      if (!isDone) {
+        console.log('[DEBUG] finally block - calling onDone (stream ended without done message)');
+        onDone();
+      }
     }
   }).catch((err) => {
     if (err.name !== 'AbortError') {

@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { flushSync } from 'react-dom';
 import { createSommelierStream, getHistory, type SommelierMessage } from '../api/sommelier';
 
 export const useSommelierChat = (sessionId: string) => {
@@ -39,33 +40,47 @@ export const useSommelierChat = (sessionId: string) => {
         setStreamingContent(streamingContentRef.current);
       },
       () => {
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            content: streamingContentRef.current,
-            timestamp: new Date().toISOString(),
-          }
-        ]);
-        setStreamingContent('');
+        console.log('[DEBUG] onDone called, content length:', streamingContentRef.current.length);
+        const assistantContent = streamingContentRef.current;
         streamingContentRef.current = '';
-        setIsStreaming(false);
+
+        // flushSync로 모든 상태 업데이트를 동기적으로 처리
+        // 이렇게 하면 messages 업데이트 전에 streamingContent가 사라지는 문제 방지
+        flushSync(() => {
+          if (assistantContent) {
+            setMessages(prev => {
+              console.log('[DEBUG] setMessages called, prev:', prev.length);
+              return [
+                ...prev,
+                {
+                  role: 'assistant',
+                  content: assistantContent,
+                  timestamp: new Date().toISOString(),
+                }
+              ];
+            });
+          }
+          setStreamingContent('');
+          setIsStreaming(false);
+        });
       },
       (error) => {
         console.error('Sommelier chat error:', error);
-        // 스트리밍 콘텐츠가 있으면 유지, 없으면 에러 메시지 표시
         const content = streamingContentRef.current || '죄송합니다, 오류가 발생했습니다. 다시 시도해주세요.';
-        setMessages(prev => [
-          ...prev,
-          {
-            role: 'assistant',
-            content,
-            timestamp: new Date().toISOString(),
-          }
-        ]);
-        setStreamingContent('');
         streamingContentRef.current = '';
-        setIsStreaming(false);
+
+        flushSync(() => {
+          setMessages(prev => [
+            ...prev,
+            {
+              role: 'assistant',
+              content,
+              timestamp: new Date().toISOString(),
+            }
+          ]);
+          setStreamingContent('');
+          setIsStreaming(false);
+        });
       }
     );
   }, [sessionId]);
